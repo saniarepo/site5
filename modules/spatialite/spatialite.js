@@ -239,8 +239,8 @@ function routeQuery(from, to, callback){
 /**
 * определение маршрута запросом к базе со смещением точки
 * в случае неудачи
-* @param from начальная точка
-* @param to конечная точка
+* @param from начальная точка вида {lat:lat,lng:lng,radius:radius}
+* @param to конечная точка вида [lat,lng]
 * @param callback функция обратного вызова в которую передается результат в виде
 * массива точек [[lat1, lng1], [lat2,lng2],...]]
 **/
@@ -253,9 +253,9 @@ function routeQueryRec(index, from, to, callback){
     var start = null;
     if ( index != 0 ){
 		/*сдвигаем точку в случ. порядке*/
-		start = latlng2node_id([from[0] + k1*ampl*(2*Math.random()-1),from[1] + k1*ampl*(2*Math.random()-1)]);
+		start = latlng2node_id([from.lat + k1*from.radius*(2*Math.random()-1),from.lng + k1*from.radius*(2*Math.random()-1)]);
 	}else{
-        start = latlng2node_id(from);
+        start = latlng2node_id([from.lat,from.lng]);
 	} 
     var end = latlng2node_id(to);
 	console.log(start+':'+end);
@@ -1150,7 +1150,7 @@ function getRestirctedNodes(enemy, callback){
 	var restricted = [];
 	for ( var i = 0; i < enemy.length; i++ ){
 		for ( var j = 0; j < n; j++ ){
-			if ( distance([enemy[i].lat,enemy[i].lng],nodes[j]) <= enemy[i].radius * enemy[i].radius ){
+			if ( rastGrad2([enemy[i].lat,enemy[i].lng],nodes[j]) <= enemy[i].radius ){
 				restricted.push([nodes[j].lat,nodes[j].lng]);
 			}
 		}
@@ -1165,7 +1165,7 @@ function getBannedNodesId(enemy){
 	var restricted = [];
 	for ( var i = 0; i < enemy.length; i++ ){
 		for ( var j = 0; j < n; j++ ){
-			if ( distance([enemy[i].lat,enemy[i].lng],nodes[j]) <= enemy[i].radius * enemy[i].radius ){
+			if ( rastGrad2([enemy[i].lat,enemy[i].lng],nodes[j]) <= enemy[i].radius ){
 				restricted.push(j+1);
 			}
 		}
@@ -1181,8 +1181,8 @@ function getBannedNodesId2(from, enemy){
 	var condition = false;
     for ( var i = 0; i < enemy.length; i++ ){
 		for ( var j = 0; j < n; j++ ){
-			condition = distance([enemy[i].lat,enemy[i].lng],nodes[j]) <= enemy[i].radius * enemy[i].radius &&
-                        distance([from.lat,from.lng],nodes[j]) >= from.radius * from.radius;
+			condition = rastGrad2([enemy[i].lat,enemy[i].lng],nodes[j]) <= enemy[i].radius &&
+                        rastGrad2([from.lat,from.lng],nodes[j]) >= from.radius;
             if ( condition ){
 				restricted.push(j+1);
 			}
@@ -1211,8 +1211,6 @@ function getReady(){
 * @param do1,dot2 точки, заданные массивами кооординат [lat,lng]
 **/
 function rastGrad(dot1,dot2){
-/**pi - число pi, rad - радиус сферы (Земли)**/
-    var rad = 6372795
 
 	/**координаты двух точек**/
 	var llat1 = dot1[0];
@@ -1243,6 +1241,16 @@ function rastGrad(dot1,dot2){
 	var dist = ad*180/Math.PI;
 	return dist;
 }
+
+/**
+* вычисление расстояния на сфере  в градусах
+* @param dot точкf, заданная массивом кооординат [lat,lng]
+* @param node узел графа, заданный как объект вида {node_id:node_id,lat:lat,lng:lng }
+**/
+function rastGrad2(dot, node){
+    return rastGrad(dot, [node.lat, node.lng]);
+}
+
 
 exports.init = init;
 exports.query = query;

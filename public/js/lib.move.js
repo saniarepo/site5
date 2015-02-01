@@ -29,6 +29,7 @@ var Move =
     moveMarkerRouteAnimation:	function (regiment,route,i)
 							{
                                 if (!Move.ENABLED) return false;
+                                if (route.length == 0) return false;
                                 if ( regiment.STOP ){
 								    regiment.STOP = false;
                                     regiment.MOVE = false;

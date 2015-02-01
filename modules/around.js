@@ -49,7 +49,7 @@ function getEnemyRegimentsData(index, game){
 **/			
 function setAround(index, game, callback){
     if ( index == undefined || index == null ) {index = 0;}
-    if ( game.regiments[index] == undefined ) {console.log('return'); return;}
+    if ( game.regiments[index] == undefined ) { return;}
     var source = {lat:game.regiments[index].latlng[0], lng:game.regiments[index].latlng[1], radius:game.regiments[index].type.radius};
     var targets = getOwnBaseCoordinates(index, game);
     var enemies = getEnemyRegimentsData(index, game);

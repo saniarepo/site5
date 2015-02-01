@@ -68,7 +68,6 @@ function gameInit(){
 * с посылкой данных объекта game и user
 **/
 function gameClone(){
-    console.log(JSON.stringify(game.mission));
     map.setView(game.mission.center,13);
     game.clone(remoteGame, function(){
          socket.emit('game_clone_client',{user: user.toString(), game: game.toString(), msg: 'Game clone'}); 

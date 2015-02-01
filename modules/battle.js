@@ -97,7 +97,7 @@ function perform(game){
         }
         /*создание игрового сообщения*/
         if ( battle != game.bases[i].battle ){
-            console.log(battle+':'+game.bases[i].battle);
+            
             if ( battle ){
                 game.addGameMessage(game.gameMsgText('beginBattle',game.bases[i]));
             } else{

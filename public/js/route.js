@@ -20,7 +20,7 @@ var Route =
     },
     
     /**получение маршрута с сервиса маршрутов Google через JS API
-    * @param e объект события
+    * @param latlng объект точки куда двигаться {lat:lat,lng:lng}
     * @param regiment объект полка
     * @param callback объект в который передается маршрут в виде массива точек и объект полка
     **/
@@ -49,7 +49,7 @@ var Route =
     
     /**
     * получение маршрута от модуля Spatialite
-    * @param e объект события
+    * @param latlng объект точки куда двигаться {lat:lat,lng:lng}
     * @param regiment объект полка
     * @param callback функция обратного вызова в которую передается маршрут и объект полка
     **/
@@ -57,7 +57,8 @@ var Route =
     getRouteSpatialite: function(latlng,regiment,callback){
 		var start = [regiment.marker.type.getLatLng().lat, regiment.marker.type.getLatLng().lng];
 		var end = [latlng.lat, latlng.lng];
-		var params = 'data=' + JSON.stringify([start,end]);
+        var radius = regiment.type.radius;
+		var params = 'data=' + JSON.stringify([start,end,radius]);
 		Ajax.sendRequest('GET', 'http://' + routeServiceUrl + '/routespatialite', params, function(route) {
 			console.log(JSON.stringify(route));
             callback(route,regiment);
@@ -66,7 +67,7 @@ var Route =
     
     /**
     * получение маршрута от модуля OSRM
-    * @param e объект события
+    * @param latlng объект точки куда двигаться {lat:lat,lng:lng}
     * @param regiment объект полка
     * @param callback функция обратного вызова в которую передается маршрут и объект полка
     **/

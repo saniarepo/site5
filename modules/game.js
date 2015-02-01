@@ -357,8 +357,8 @@ function Game()
         var messages = {
             beginBattle: object.type.name + ' ' + object.id + ' ' +object.country.name + ' вступил в бой',
             endBattle: object.type.name + ' ' + object.id + ' ' +object.country.name + ' вышел из боя',
-            beginAround: object.type.name + ' ' + object.id + ' ' +object.country.name + ' попал(а) в окружение',
-            endAround: object.type.name + ' ' + object.id + ' ' +object.country.name + ' вышел(вышла) из окружения',
+            beginAround: object.type.name + ' ' + object.id + ' ' +object.country.name + ' снабжение прервано',
+            endAround: object.type.name + ' ' + object.id + ' ' +object.country.name + ' снабжение восстановлено',
             unitKilled: object.type.name + ' ' + object.id + ' ' +object.country.name + ' уничтожен',
             baseCaptured: object.type.name + ' ' + object.id + ' ' +object.country.name + ' захвачена противником'
         };

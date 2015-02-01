@@ -49,8 +49,10 @@ app.get('/routespatialite',function(req,res){
     var data = JSON.parse(req.query.data);
 	var source = data[0];
 	var target = data[1];
+    var radius = data[2];
+    var from = {lat:source[0],lng:source[1],radius:radius};
 	time.start();
-	spatialite.routeQuery(source, target, function(route){
+	spatialite.routeQueryRec(0,from, target, function(route){
 		console.log('Executing time: '+time.stop());
 		res.writeHead(200, {"Content-Type": "text/html","Access-Control-Allow-Origin": "*"});
 		res.write(JSON.stringify(route));
