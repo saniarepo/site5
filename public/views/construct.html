@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>On-line стратегия(Конструктор миссий)</title>
+  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="utf-8" />
+	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+	<link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/construct.css" />
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+	<script src="/js/lib/leaflet-providers.js"></script>
+    <script src="/js/lib/google_tiles.js"></script>
+	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript" src="/js/object.types.js"></script>
+	<script type="text/javascript" src="/js/countries.js"></script>
+    <script type="text/javascript" src="/js/helper.js"></script>
+    <script type="text/javascript" src="/js/construct.js"></script>
+    <script type="text/javascript" src="/js/ajax.js"></script>
+      
+</head>
+    <body>
+        {% block wrap %} {% endblock %}
+            
+        <hr />
+                <div id="map">
+                </div>
+                <div class="title"><h3 class="grad rad2">Конструктор миссий</h3></div>
+                <div class="clr"></div>
+                <div class="form">
+                    <fieldset>
+                        <legend>Общее</legend>
+                        <label>id миссии: </label><input id="mission_id" type="text" name="mission_id"/><br />
+                        <div class="clr"></div>
+                        <label>Название миссии: </label><input id="mission_name" type="text" name="mission_name"/><br />
+                        <div class="clr"></div>
+                         <label>Описание миссии: </label><textarea id="desc" name="desc"></textarea><br />
+                         <div class="clr"></div>
+                         <label>Файл базы графа: </label><input id="db_file" type="text" name="db_file"/><br />
+                         <div class="clr"></div>
+                         <label>Файл миссий: </label><input id="mission_file" type="text" name="mission_file"/><br />
+                         
+                        
+                    </fieldset>
+                    
+                    <fieldset>
+                        <legend>Страна 1</legend>
+                        <select id="country1"></select>
+                        <div class="clr"></div>
+                        <label>Описание миссии: </label><textarea id="desc1" name="desc1"></textarea><br />
+                        <div class="clr"></div>
+                        <label class="help">Полки</label><input type="radio" name="unit" value="regiment1" checked /><br/>
+                        <div class="clr"></div>
+                        <label class="help">Базы</label><input type="radio" name="unit" value="base1"/>
+                    </fieldset>
+                    <fieldset>
+                        <label>Тип создаваемого юнита: </label>
+                        <select id="unit-type"></select>
+                    </fieldset>
+                    
+                    <fieldset>
+                        <legend>Страна 2</legend>
+                        <select id="country2"></select>
+                        <div class="clr"></div>
+                        <label>Описание миссии: </label><textarea id="desc2" name="desc2"></textarea><br />
+                        <div class="clr"></div>
+                        <label class="help">Полки</label><input type="radio" name="unit" value="regiment2"/><br/>
+                        <div class="clr"></div>
+                        <label class="help">Базы</label><input type="radio" name="unit" value="base2"/>
+                    </fieldset>
+                    <button id="save">Сохранить миссию</button>
+                    <button id="create">Создать файл миссий</button>
+                    <button id="clear">Очистить</button>
+                    <button id="clear-all">Очисть все</button>
+                    
+                </div>
+                <div id="help">Для создания юнита кликните на карте</div>
+        <hr size="3" />
+        <script type="text/javascript" src="/js/map.construct.js"></script>
+    </body>
+</html>

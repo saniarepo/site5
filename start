@@ -1,0 +1,2 @@
+#! /bin/sh
+./game_server & ./route_service & ./elevation_service

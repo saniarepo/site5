@@ -1,0 +1,6 @@
+log.txt
+node_modules/sqlite3/
+node_modules/.bin/
+node_modules/swig/
+modules/sqlite3.el.srv/*.sqlite
+*.sqlite

@@ -1,0 +1,33 @@
+{% extends 'layout.html' %}
+
+{% block wrap %}
+    <div id="wrap-start" style="display:none">
+            <div id="start">
+            
+                 <h1>Online стратегия на реальных картах</h1>
+                 <table>
+                     <tr>
+                         <td><label>Ваше имя:</label></td>
+                         <td><p style="color: #ff4800" id="error-block"></p><input id="input-name" type="text" value="user2" name="name"/></td>
+                     </tr>
+                     <tr>
+                         <td><label>Ваша миссия</label></td> 
+                         <td id="td-mission"></td>
+                     </tr>
+                     <tr>
+                        <td  colspan="2"><p id="mission-desc" class="mission-desc"></p></td>
+                     </tr>
+                     <tr>
+                         <td><label>Ваша страна</label></td>
+                         <td id="td-country"></td>
+                     </tr>
+                     
+                     <tr>
+                        <td colspan="2"><button id="btn-start" >Присоединиться к игре</button></td>
+                     </tr>
+                 </table>
+                 
+            </div>
+        </div>
+
+{% endblock %}

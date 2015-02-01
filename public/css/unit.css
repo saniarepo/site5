@@ -1,0 +1,17 @@
+ul.unit-menu li
+{
+    cursor: pointer;
+}
+
+
+ul.unit-menu li:hover
+{
+    color: #666;
+}
+
+ul.unit-menu
+{
+    list-style-type: none;
+    text-align: left;
+    padding: 0;
+}

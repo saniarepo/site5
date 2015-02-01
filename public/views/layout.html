@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>On-line стратегия</title>
+  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="utf-8" />
+	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+	<link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/unit.css" />
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+	<script src="/js/lib/leaflet-providers.js"></script>
+    <script src="/js/lib/google_tiles.js"></script>
+	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript" src="/js/debug.js"></script>
+	<script type="text/javascript" src="/js/countries.js"></script>
+	<script type="text/javascript" src="/js/object.types.js"></script>
+	<script type="text/javascript" src="/js/index.js"></script>
+	<script type="text/javascript" src="/js/lib.move.js"></script>
+    <script type="text/javascript" src="/js/lib.iface.js"></script>
+	<script type="text/javascript" src="/js/game.js"></script>
+	<script type="text/javascript" src="/js/regiment.js"></script>
+	<script type="text/javascript" src="/js/supplybase.js"></script>
+    <script type="text/javascript" src="/js/user.js"></script>
+    <script type="text/javascript" src="/js/handler.js"></script>
+    <script type="text/javascript" src="/js/helper.js"></script>
+    <script type="text/javascript" src="/js/socket.js"></script>
+    <script type="text/javascript" src="/js/ajax.js"></script>
+    <script type="text/javascript" src="/js/route.js"></script>  
+</head>
+    <body>
+        {% block wrap %} {% endblock %}
+            
+        <hr />
+                
+                <div id="map">
+                </div>
+                <div class="title"><h3 class="grad rad2">Online стратегия</h3></div>
+                <div class="btn-block control-block grad2 font-response">
+                    
+                    <label id="label-btn-block" class="text-hover font-response">Скрыть кнопки</label><br />
+                   <button class="btn rad grad text-hover font-response" id="btn-pause">Пауза</button><br />
+                   <button class="btn rad grad text-hover  font-response" id="btn-exit">Выйти из игры</button><br />
+                   <label class="text-hover font-response">Сервис маршрутов:</label><br/>
+                   <select class="btn rad grad text-hover font-response" id="service">
+        				<option selected="selected" value="google" >Google</option>
+        				<option value="osrm" >OSRM</option>
+        				<option  value="spatialite" >Spatialite</option>
+        			</select>
+                    
+                </div>
+                <div class="log-block control-block grad2 font-response">
+                    
+                    <label id="label-log-block" class="text-hover font-response">Скрыть лог</label><br/>
+                    <div class="log-message font-response" id="log-message"></div>
+                </div>
+                
+                <div class="info-block control-block grad2 font-response">
+                    
+                    <label id="label-info-block" class="text-hover font-response">Скрыть сводку</label><br/>
+                    <div class="info-message font-response" id="info-message"></div>
+                    <div id="mission-label" class="mission-label cursor font-response"><b>Миссия</b></div>
+                </div>
+                <div id="preloader"><img src="/img/load.gif"/></div>
+                <div id="unit-info" class="unit-info font-response"></div>
+                <div id="mission-info" class="mission-info font-response"></div>
+                <div id="game-over" class="game-over font-response">
+                    <p></p>
+                    <label id="label-next">Далее >></label>
+                </div>
+                
+        <hr size="3" />
+        
+    </body>
+</html>
