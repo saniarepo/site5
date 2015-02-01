@@ -58,9 +58,6 @@ function setAround(index, game, callback){
        if ( game.regiments[index] != undefined ){
             //console.log('result='+result);
             /*создаем игровое сообщение*/
-            if ( game.regiments[index].country.id =='germany' ){
-                console.log('result=' +result);
-            }
             if ( game.regiments[index].around == result ){
                 if ( result ){
                     game.addGameMessage(game.gameMsgText('endAround',game.regiments[index]));
@@ -143,7 +140,6 @@ function init(db_file, callback){
     var params = 'data=' + db_file;
     var results = '';
     var result = null;
-    console.log('around.init db_file '+ db_file);
     var options = {
                     hostname: ROUTE_SERVICE_HOSTNAME,
                     port: ROUTE_SERVICE_PORT,

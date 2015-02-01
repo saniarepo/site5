@@ -229,7 +229,6 @@ function check_around(socket,sdata){
             return true;
         }
         if ( data.user.id == sdata.game.users[0].id ){
-             console.log('check_around');
             around.setAround(null, sdata.game, function(){
                 socket.emit('check_around_done');
             });

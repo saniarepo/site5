@@ -21,7 +21,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 /*маршрут для получения команды инициализации модуля spatialite*/
 app.post('/init',function(req,res){
     var db_file = req.body.data;
-    console.log('server:db_file:'+db_file);
     spatialite.init(db_file,function(){
    	    console.log('server: spatialite ready ');
         res.writeHead(200, {"Content-Type": "text/html","Access-Control-Allow-Origin": "*"});

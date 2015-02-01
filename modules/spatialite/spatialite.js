@@ -14,7 +14,7 @@ var margin = 0.6; /**коэффициент расширения для опре
 var margin2 = 2.0;/**коэффициент расширения для определения части графа для обсчета**/
 var NUMBER_OF_RETRIES = 12; /*максимальное количество попыток сдвигать точку если не найден маршрут*/
 var k1 = 0.7; /*коэф. амплитуды сдвига точки при определении окружения*/
-var ampl = 0.01; /*амплитуда сдвига точки при определении маршрута*/
+var ampl = 0.007; /*амплитуда сдвига точки при определении маршрута*/
 var ready = false;
 var DB_FOLDER = 'db'; /*каталог с базами данных*/
 
@@ -188,7 +188,7 @@ function init(db_file, callback){
 * очистка данных содержащих граф
 * @param callback функция обратного вызова
 **/
-function clear(callback){
+function clear(){
     console.log('unload graph...');
     db = null;
     roads= [];
@@ -1204,6 +1204,44 @@ function getTargetsNodesId(to){
 
 function getReady(){
     return ready;
+}
+
+/**
+* вычисление расстояния на сфере  в градусах
+* @param do1,dot2 точки, заданные массивами кооординат [lat,lng]
+**/
+function rastGrad(dot1,dot2){
+/**pi - число pi, rad - радиус сферы (Земли)**/
+    var rad = 6372795
+
+	/**координаты двух точек**/
+	var llat1 = dot1[0];
+	var llong1 = dot1[1];
+
+	var llat2 = dot2[0];
+	var llong2 = dot2[1];
+
+	/**в радианах**/
+	var lat1 = llat1*Math.PI/180;
+	var lat2 = llat2*Math.PI/180;
+	var long1 = llong1*Math.PI/180;
+	var long2 = llong2*Math.PI/180;
+
+	/**косинусы и синусы широт и разницы долгот**/
+	var cl1 = Math.cos(lat1)
+	var cl2 = Math.cos(lat2)
+	var sl1 = Math.sin(lat1)
+	var sl2 = Math.sin(lat2)
+	var delta = long2 - long1
+	var cdelta = Math.cos(delta)
+	var sdelta = Math.sin(delta)
+
+	/**вычисления длины большого круга**/
+	var y = Math.sqrt(Math.pow(cl2*sdelta,2)+Math.pow(cl1*sl2-sl1*cl2*cdelta,2))
+	var x = sl1*sl2+cl1*cl2*cdelta
+	var ad = Math.atan2(y,x)
+	var dist = ad*180/Math.PI;
+	return dist;
 }
 
 exports.init = init;
