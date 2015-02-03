@@ -12,9 +12,8 @@ var m = 0; /**количество дуг графа**/
 var INF = 999999999; /**большое число**/
 var margin = 0.6; /**коэффициент расширения для определения части графа для обсчета**/
 var margin2 = 2.0;/**коэффициент расширения для определения части графа для обсчета**/
-var NUMBER_OF_RETRIES = 3; /*максимальное количество попыток сдвигать точку если не найден маршрут*/
-var k1 = 0.7; /*коэф. амплитуды сдвига точки при определении окружения*/
-var ampl = 0.007; /*амплитуда сдвига точки при определении маршрута*/
+var NUMBER_OF_RETRIES = 10; /*максимальное количество попыток сдвигать точку если не найден маршрут*/
+var k1 = 0.707; /*коэф. амплитуды сдвига точки при определении окружения*/
 var ready = false;
 var DB_FOLDER = 'db'; /*каталог с базами данных*/
 
@@ -179,7 +178,7 @@ function init(db_file, callback){
     loadNodes(function(){
 		loadRoads(function(){
 			ready = true;
-            console.log('graph loaded: nodes: ' + n + '; roads: ' + m);
+            console.log('graph from database '+ db_file +' loaded: nodes: ' + n + '; roads: ' + m);
             callback();
 		})
 	});
@@ -947,7 +946,7 @@ function routeWaveEnemy(from, to, enemy, callback){
 * волновым алгоритмом
 * @param index номер попытки 
 * @param from начальная точка вида {lat:lat,lng:lng,radius:radius}
-* @param to  массив конечных точек (баз) вида [[lat1,lng1],[lat2,lng2],...]
+* @param to  массив конечных точек (объектов баз) вида [{lat:lat,lng:lng,radius:radius},...]
 * @param enemy массив полков неприятеля вида [{lat:lat, lng:lng, radius:radius}, ...]
 * @param callback функция обратного вызова в которую передается результат в виде
 * true(если маршрут найден) или false (если не найден)
@@ -975,7 +974,7 @@ function findRouteToBases(index, from, to, enemy, callback){
 	}else{
 		start = latlng2node_id([from.lat,from.lng]);
 	}
-    var targets = getTargetsNodesId(to);
+    var targets = getTargetsNodesId2(to);
 	waveLabel[start-1] = 0;
 	oldFront.push(start);
 	var banned = getBannedNodesId2(from, enemy);
@@ -1199,6 +1198,22 @@ function getTargetsNodesId(to){
 	var targets = [];
 	for ( var i = 0; i < to.length; i++ ){
 		targets.push(latlng2node_id([to[i][0], to[i][1]]));
+	}
+	return targets;
+}
+
+/**
+* получение всех целевых узлов (включая точки в окрестности баз)
+**/
+function getTargetsNodesId2(to){
+	var targets = [];
+	for ( var i = 0; i < to.length; i++ ){
+		for ( var j = 0; j < n; j++ ){
+    		var rast = rastGrad2([to[i].lat,to[i].lng],nodes[j]);
+    		if (  rast <= to[i].radius ){
+    			targets.push(nodes[j].node_id);
+    		}
+    	}
 	}
 	return targets;
 }

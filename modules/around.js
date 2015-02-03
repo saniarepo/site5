@@ -9,18 +9,18 @@ var ROUTE_SERVICE_PORT = 8001; /*порт сервиса маршрутов*/
 * получение координат своих баз
 * @param index индекс полка в массиве полков
 * @param game объект игры
-* @return координаты баз  в виде массива точек 
+* @return данные баз  в виде массива объектов вида {lat:lat, lng:lng, radius:radius} 
 **/
-function getOwnBaseCoordinates(index, game){
-    var baseCoord = [];
+function getOwnBaseData(index, game){
+    var baseData = [];
     var basesLen = game.bases.length;
     for ( var i = 0; i < basesLen; i++ ){
         if (game.bases[i] == undefined || game.regiments[index] == undefined) continue;
         if ( game.bases[i].country.id == game.regiments[index].country.id ) {
-            baseCoord.push(game.bases[i].latlng);
+            baseData.push({lat: game.bases[i].latlng[0], lng: game.bases[i].latlng[1], radius: game.bases[i].type.radius});
         }
     }
-    return baseCoord;
+    return baseData;
 }
 
 /**
@@ -51,7 +51,7 @@ function setAround(index, game, callback){
     if ( index == undefined || index == null ) {index = 0;}
     if ( game.regiments[index] == undefined ) { return;}
     var source = {lat:game.regiments[index].latlng[0], lng:game.regiments[index].latlng[1], radius:game.regiments[index].type.radius};
-    var targets = getOwnBaseCoordinates(index, game);
+    var targets = getOwnBaseData(index, game);
     var enemies = getEnemyRegimentsData(index, game);
     //console.log(source+':'+targets+':'+enemies);
     findRouteToBases(index, source, targets, enemies, function(index, result){
@@ -83,7 +83,7 @@ function setAround(index, game, callback){
 * из своих баз с сервера маршрутов через отправку HTTP POST запроса 
 * @param index индекс полка в массиве полков
 * @param source объект полка вида {lat:lat,lng:lng,radius:radius}
-* @param targets массив точек своих баз вида [[lat1,lng1],[lat2,lng2],...]
+* @param targets массив объектов своих баз вида [{lat:lat,lng:lng,radius:radius},...]
 * @param enemies массив объектов полков врага вида [{lat:lat,lng:lng,radius:radius}, ...]
 * @param callback функция обратного вызова, в которую передается обратно индекс и 
 * результат поиска маршрута в виде true ( если есть ) или false ( если нет )
