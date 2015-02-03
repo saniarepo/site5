@@ -32,9 +32,10 @@
     
 	/*создаем другие базовые слои от других провайдеров*/     
 	var osmde = L.tileLayer.provider('OpenStreetMap.DE',{maxZoom: maxZoom, minZoom: minZoom});
-	var osmBW = L.tileLayer.provider('OpenStreetMap.BlackAndWhite',{maxZoom: maxZoom, minZoom: minZoom}).addTo(map);
+	var osmBW = L.tileLayer.provider('OpenStreetMap.BlackAndWhite',{maxZoom: maxZoom, minZoom: minZoom});
 	var ersiwi = L.tileLayer.provider('Esri.WorldImagery',{maxZoom: maxZoom, minZoom: minZoom});
-	/*создаем контрол для переключения слоев*/
+	map.addLayer(ggl2);
+    /*создаем контрол для переключения слоев*/
 	var baseLayers = 	{
 							"OpenStreetMap": osmde,
                             "Mapbox": mapbox,

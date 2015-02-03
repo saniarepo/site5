@@ -12,7 +12,7 @@ var m = 0; /**количество дуг графа**/
 var INF = 999999999; /**большое число**/
 var margin = 0.6; /**коэффициент расширения для определения части графа для обсчета**/
 var margin2 = 2.0;/**коэффициент расширения для определения части графа для обсчета**/
-var NUMBER_OF_RETRIES = 12; /*максимальное количество попыток сдвигать точку если не найден маршрут*/
+var NUMBER_OF_RETRIES = 3; /*максимальное количество попыток сдвигать точку если не найден маршрут*/
 var k1 = 0.7; /*коэф. амплитуды сдвига точки при определении окружения*/
 var ampl = 0.007; /*амплитуда сдвига точки при определении маршрута*/
 var ready = false;
@@ -179,6 +179,7 @@ function init(db_file, callback){
     loadNodes(function(){
 		loadRoads(function(){
 			ready = true;
+            console.log('graph loaded: nodes: ' + n + '; roads: ' + m);
             callback();
 		})
 	});
@@ -1202,6 +1203,9 @@ function getTargetsNodesId(to){
 	return targets;
 }
 
+/**
+* получение флага готовности
+**/
 function getReady(){
     return ready;
 }
