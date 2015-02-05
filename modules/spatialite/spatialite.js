@@ -12,10 +12,9 @@ var m = 0; /**количество дуг графа**/
 var INF = 999999999; /**большое число**/
 var margin = 0.6; /**коэффициент расширения для определения части графа для обсчета**/
 var margin2 = 2.0;/**коэффициент расширения для определения части графа для обсчета**/
-var NUMBER_OF_RETRIES = 10; /*максимальное количество попыток сдвигать точку если не найден маршрут*/
-var k1 = 0.707; /*коэф. амплитуды сдвига точки при определении окружения*/
 var ready = false;
 var DB_FOLDER = 'db'; /*каталог с базами данных*/
+var CONNECTED_COFF = 0.95; /**часть связных узлов**/
 
 /**
 * выполнение запроса и получение результатов в виде массива объектов
@@ -105,7 +104,8 @@ function loadNodes(callback){
 			if ( rows != undefined ){
 				if ( rows != null ){
 					for ( var i = 0; i < rows.length; i++ ){
-						nodes.push(rows[i]);
+						rows[i].connected = false;
+                        nodes.push(rows[i]);
 					}			
 				}
 			}
@@ -177,9 +177,11 @@ function init(db_file, callback){
     db = new sqlite.Database('modules/spatialite/' + DB_FOLDER + '/' + db_file);
     loadNodes(function(){
 		loadRoads(function(){
-			ready = true;
-            console.log('graph from database '+ db_file +' loaded: nodes: ' + n + '; roads: ' + m);
-            callback();
+			fillConnectedNodes(0, function(){
+                ready = true;
+                console.log('graph from database '+ db_file +' loaded: nodes: ' + n + '; roads: ' + m);
+                callback();
+			});
 		})
 	});
 }
@@ -944,14 +946,13 @@ function routeWaveEnemy(from, to, enemy, callback){
 /**
 * поиск маршрута до любой из заданных баз с обходом полков неприятеля
 * волновым алгоритмом
-* @param index номер попытки 
 * @param from начальная точка вида {lat:lat,lng:lng,radius:radius}
 * @param to  массив конечных точек (объектов баз) вида [{lat:lat,lng:lng,radius:radius},...]
 * @param enemy массив полков неприятеля вида [{lat:lat, lng:lng, radius:radius}, ...]
 * @param callback функция обратного вызова в которую передается результат в виде
 * true(если маршрут найден) или false (если не найден)
 **/
-function findRouteToBases(index, from, to, enemy, callback){
+function findRouteToBases(from, to, enemy, callback){
     if (!ready){
 	   callback(true);
        return;
@@ -963,18 +964,12 @@ function findRouteToBases(index, from, to, enemy, callback){
 	var prev = []; /**предки вершин**/
 	var curr = null;
 	var id = null;
-    var start = null;
 	for ( var i = 0; i < n; i++ ){
 		waveLabel[i] = -1;
 		prev[i] = 0;
 	}
-	if ( index != 0 ){
-		/*сдвигаем точку в случ. порядке*/
-		start = latlng2node_id([from.lat + k1*from.radius*(2*Math.random()-1),from.lng + k1*from.radius*(2*Math.random()-1)]);
-	}else{
-		start = latlng2node_id([from.lat,from.lng]);
-	}
-    var targets = getTargetsNodesId2(to);
+	var start = latlng2node_id([from.lat,from.lng]);
+    var targets = getTargetsNodesId(to);
 	waveLabel[start-1] = 0;
 	oldFront.push(start);
 	var banned = getBannedNodesId2(from, enemy);
@@ -1004,14 +999,8 @@ function findRouteToBases(index, from, to, enemy, callback){
 			}
 		}
 		if ( newFront.length == 0 ){
-			if ( index < NUMBER_OF_RETRIES ){
-				index++;
-				findRouteToBases(index, from, to, enemy, callback);
-				return false;
-			}else{
-				callback(false);
-				return false;
-			}
+			callback(false);
+			return false;
 		}
 		oldFront = newFront;
 		newFront = [];
@@ -1082,7 +1071,8 @@ function latlng2node_id(dot){
 	var node_id = 1;
 	var minDist = distance(dot,nodes[1]);
 	for ( var i = 0; i < n; i++ ){
-		var currDist = distance(dot, nodes[i]);
+		if ( !nodes[i].connected ) continue;
+        var currDist = distance(dot, nodes[i]);
 		if ( currDist < minDist ){
 			node_id = nodes[i].node_id;
 			minDist = currDist;
@@ -1100,6 +1090,7 @@ function latlng2node_id_part(dot,nodes_part,u){
 	var node_id = 0;
 	var minDist = distance(dot,nodes[nodes_part[0]]);
 	for ( var i = 0; i < u; i++ ){
+	   if ( !nodes[nodes_part[i]].connected ) continue;
 		var currDist = distance(dot, nodes[nodes_part[i]]);
 		if ( currDist < minDist ){
 			node_id = i;
@@ -1197,7 +1188,7 @@ function getBannedNodesId2(from, enemy){
 function getTargetsNodesId(to){
 	var targets = [];
 	for ( var i = 0; i < to.length; i++ ){
-		targets.push(latlng2node_id([to[i][0], to[i][1]]));
+		targets.push(latlng2node_id([to[i].lat, to[i].lng]));
 	}
 	return targets;
 }
@@ -1268,6 +1259,62 @@ function rastGrad(dot1,dot2){
 **/
 function rastGrad2(dot, node){
     return rastGrad(dot, [node.lat, node.lng]);
+}
+
+
+/**
+* заполнение поля connected (которое обозначает принадлежность узла к связной части графа) у узлов графа
+* @param index номер попытки
+* @param callback функция обратного вызова в которую передается результат в виде
+* массива id узлов [id1, id2,...]]
+**/
+function fillConnectedNodes(index, callback){
+	var connectedNodes = 0;/**счетчик связных узлов**/
+    var waveLabel = []; /**волновая метка**/
+	var T = 0;/**время**/
+	var oldFront = [];/**старый фронт**/
+	var newFront = [];/**новый фронт**/
+	var curr = null;
+	var id = null;
+	for ( var i = 0; i < n; i++ ){
+		waveLabel[i] = -1;
+	}
+	var start = Math.floor(n/2+index);
+	console.log('findConnectedNodes2: start='+start);
+	waveLabel[start-1] = 0;
+	oldFront.push(start);
+	nodes[start-1].connected = true;
+    connectedNodes++;
+	while (true){
+		//console.log(JSON.stringify(oldFront));
+		for ( var i = 0; i < oldFront.length; i++ ){
+			curr = oldFront[i];
+			//console.log('curr='+curr);
+			for ( j = index_from[curr-1]; j < index_from[curr-1] + index_size[curr-1]; j++ ){
+				id = roads[j].node_to;
+				if ( waveLabel[id-1] == -1 ){
+					waveLabel[id-1] = T + 1;
+					newFront.push(id);
+					nodes[id-1].connected = true;
+                    connectedNodes++;
+				}
+			}
+		}
+		if ( newFront.length == 0 ){
+			/*распостранение волны закончено*/
+			if ( connectedNodes >= n * CONNECTED_COFF ){
+				console.log('Found connected nodes: '+connectedNodes);
+				callback();
+				return;
+			}else{
+				fillConnectedNodes(index+1, callback)
+				return;
+			}
+		}
+		oldFront = newFront;
+		newFront = [];
+		T++;
+	}
 }
 
 
