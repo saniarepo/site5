@@ -182,6 +182,118 @@ var Vietnam =
     }
 };
 
+var Azerbaijan = 
+{
+	name:	'Азербайджан',
+	id:	    'azerbaijan',
+					
+	icon: 	L.icon({ iconUrl: '/img/country/Azerbaijan.png',
+			iconSize: [24, 24], 
+			iconAnchor: [12, 36], 
+			shadowAnchor: [4, 23], 
+			popupAnchor: [-3, -23]}),
+					
+	toString: function(){
+        return {name: this.name, id: this.id};
+    }
+};
+
+var Israel = 
+{
+	name:	'Израиль',
+	id:	    'israel',
+					
+	icon: 	L.icon({ iconUrl: '/img/country/Israel.png',
+			iconSize: [24, 24], 
+			iconAnchor: [12, 36], 
+			shadowAnchor: [4, 23], 
+			popupAnchor: [-3, -23]}),
+					
+	toString: function(){
+        return {name: this.name, id: this.id};
+    }
+};
+
+var Palestine = 
+{
+	name:	'Палестина',
+	id:	    'palestine',
+					
+	icon: 	L.icon({ iconUrl: '/img/country/Palestine.png',
+			iconSize: [24, 24], 
+			iconAnchor: [12, 36], 
+			shadowAnchor: [4, 23], 
+			popupAnchor: [-3, -23]}),
+					
+	toString: function(){
+        return {name: this.name, id: this.id};
+    }
+};
+
+var Mongolia = 
+{
+	name:	'Монголия',
+	id:	    'mongolia',
+					
+	icon: 	L.icon({ iconUrl: '/img/country/Mongolia.png',
+			iconSize: [24, 24], 
+			iconAnchor: [12, 36], 
+			shadowAnchor: [4, 23], 
+			popupAnchor: [-3, -23]}),
+					
+	toString: function(){
+        return {name: this.name, id: this.id};
+    }
+};
+
+var Pakistan = 
+{
+	name:	'Пакистан',
+	id:	    'pakistan',
+					
+	icon: 	L.icon({ iconUrl: '/img/country/Pakistan.png',
+			iconSize: [24, 24], 
+			iconAnchor: [12, 36], 
+			shadowAnchor: [4, 23], 
+			popupAnchor: [-3, -23]}),
+					
+	toString: function(){
+        return {name: this.name, id: this.id};
+    }
+};
+
+var Turkmenistan = 
+{
+	name:	'Туркменистан',
+	id:	    'turkmenistan',
+					
+	icon: 	L.icon({ iconUrl: '/img/country/Turkmenistan.png',
+			iconSize: [24, 24], 
+			iconAnchor: [12, 36], 
+			shadowAnchor: [4, 23], 
+			popupAnchor: [-3, -23]}),
+					
+	toString: function(){
+        return {name: this.name, id: this.id};
+    }
+};
+
+var Uzbekistan = 
+{
+	name:	'Узбекистан',
+	id:	    'uzbekistan',
+					
+	icon: 	L.icon({ iconUrl: '/img/country/Uzbekistan.png',
+			iconSize: [24, 24], 
+			iconAnchor: [12, 36], 
+			shadowAnchor: [4, 23], 
+			popupAnchor: [-3, -23]}),
+					
+	toString: function(){
+        return {name: this.name, id: this.id};
+    }
+};
+
 /**
 * объект перечисляющий все страны в данном файле
 **/
@@ -197,6 +309,13 @@ var Countries =
     ussr: [USSR, 'СССР'],
     syria: [Syria, 'Сирия'],
     tajikistan: [Tajikistan, 'Таджикистан'],
-    vietnam: [Vietnam, 'Вьетнам']
+    vietnam: [Vietnam, 'Вьетнам'],
+	azerbaijan: [Azerbaijan, 'Азербайджан'],
+	israel: [Israel, 'Израиль'],
+	palestine: [Palestine,'Палестина'],
+	mongolia: [Mongolia,'Монголия'],
+	pakistan: [Pakistan, 'Пакистан'],
+	turkmenistan: [Turkmenistan, 'Туркменистан'],
+	uzbekistan: [Uzbekistan, 'Узбекистан']
     
 };
