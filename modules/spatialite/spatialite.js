@@ -238,61 +238,6 @@ function routeQuery(from, to, callback){
 	});
 }
 
-/**
-* определение маршрута запросом к базе со смещением точки
-* в случае неудачи
-* @param from начальная точка вида {lat:lat,lng:lng,radius:radius}
-* @param to конечная точка вида [lat,lng]
-* @param callback функция обратного вызова в которую передается результат в виде
-* массива точек [[lat1, lng1], [lat2,lng2],...]]
-**/
-
-function routeQueryRec(index, from, to, callback){
-	if (!ready){
-	   callback([]);
-       return;
-	}
-    var start = null;
-    if ( index != 0 ){
-		/*сдвигаем точку в случ. порядке*/
-		start = latlng2node_id([from.lat + k1*from.radius*(2*Math.random()-1),from.lng + k1*from.radius*(2*Math.random()-1)]);
-	}else{
-        start = latlng2node_id([from.lat,from.lng]);
-	} 
-    var end = latlng2node_id(to);
-	console.log(start+':'+end);
-	var sql = "SELECT AsGeoJSON(geometry) AS geometry FROM roads_net WHERE ";
-	sql += "NodeFrom=" + start + " AND NodeTo=" + end; 
-	sql += " LIMIT 1;"
-    //console.log(sql);
-	db.spatialite(function(err) {
-		db.get(sql, function(err, row) {
-            //console.log(JSON.stringify(row));
-            route = [];
-			if ( row != undefined ){
-				if ( row.geometry != null ){
-					var obj = JSON.parse(row.geometry);
-					route = obj.coordinates;
-				}
-			}
-			//console.log(JSON.stringify(reverse(route)));
-            if ( route.length != 0 ){
-                callback(reverse(route));
-                return;
-            }else{
-                if ( index < NUMBER_OF_RETRIES ){
-    				index++;
-    				routeQueryRec(index, from, to, callback);
-    				return;
-    			}else{
-    				callback([]);
-    				return;
-    			}
-            }
-            
-		});
-	});
-}
 
 /**
 * определение маршрута по алгоритму Дейкстры
@@ -1329,7 +1274,6 @@ exports.routeDijkstraEnemy = routeDijkstraEnemy;
 exports.routeDijkstraEnemy2 = routeDijkstraEnemy2;
 exports.getCost = getCost;
 exports.routeQuery = routeQuery;
-exports.routeQueryRec = routeQueryRec;
 exports.getAllRoads = getAllRoads;
 exports.getAllNodes = getAllNodes;
 exports.getRestirctedNodes = getRestirctedNodes;

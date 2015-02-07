@@ -52,7 +52,7 @@ app.get('/routespatialite',function(req,res){
     var radius = data[2];
     var from = {lat:source[0],lng:source[1],radius:radius};
 	time.start();
-	spatialite.routeQueryRec(0,from, target, function(route){
+	spatialite.routeQuery(from, target, function(route){
 		console.log('Executing time: '+time.stop());
 		res.writeHead(200, {"Content-Type": "text/html","Access-Control-Allow-Origin": "*"});
 		res.write(JSON.stringify(route));
