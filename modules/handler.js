@@ -1,5 +1,5 @@
 /*серверный модуль обработчиков событий при взаимодействии клиентов и сервера*/
-var missions_file = 'missions5'; /*файл миссий*/
+var missions_file = 'missions'; /*файл миссий*/
 var mission_module = '../'+ global.sdata.getMissionsDir() + '/' + missions_file;
 var missions = require(mission_module).missions;
 var around = require('./around'); /*подключение модуля окружения*/
