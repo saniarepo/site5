@@ -14,6 +14,7 @@ var PORT = 5000; //порт сервера маршрутов
 **/
 function decode(encoded, precision) {
     precision = Math.pow(10, -precision);
+    if (!encoded) return [];
     var len = encoded.length, index=0, lat=0, lng = 0, array = [];
     while (index < len) {
         var b, shift = 0, result = 0;
