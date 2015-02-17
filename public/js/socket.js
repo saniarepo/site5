@@ -11,10 +11,9 @@ var isGameInit = false; /*флаг инициализации игры на се
 var remoteGame = false; /*объект для хранения принятого серверного объекта игры*/
 var interval = null; /*интервал обновления клиента и сервера*/
 var LIVE_INTERVAL = 4000; /*интервал генерации события об активности клиента*/ 
-var ROUTE_SERVICE_PORT = 8001; /*порт сервиса маршрутов*/
 var AROUND_TIMEOUT = 4000; /*интервал генерации событий запроса проверки окружения*/
-var routeServiceUrl = window.location.hostname + ':' + ROUTE_SERVICE_PORT;
-//var ELEVATION_SERVICE_PORT = 8002; /*порт сервиса высотных данных*/
+var hostname = window.location.hostname;
+
 var ELEVATION_TIMEOUT = 2000; /*интервал генерации событий запроса высотных данных*/
 //var elevationServiceUrl = window.location.hostname + ':' + ELEVATION_SERVICE_PORT;
 

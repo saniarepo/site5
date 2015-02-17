@@ -123,8 +123,10 @@ function RegimentBase( latlng, id )
     * @param e объект события
     **/
 	this.goRoute = function(latlng){
-        Route.getRoute(latlng,this,function(route, regiment){    
-            Move.moveMarkerRouteAnimation( regiment, route );
+        var object = this;
+        var source = {lat: this.marker.type.getLatLng().lat, lng: this.marker.type.getLatLng().lng};
+        Route.getRoute(latlng,source,function(route){    
+            Move.moveMarkerRouteAnimation( object, route );
 		});	
 	};
 	

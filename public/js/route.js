@@ -3,29 +3,32 @@ var Route =
 {
 	service: 'google', /*возможные варианты: 'osrm','google','spatialite'*/
     
+    OSRM_PORT: 8003,
+    SPATIALITE_PORT: 8001,
+    
     /*объект directionsService*/
     directionsService: new google.maps.DirectionsService(),
 	
-    getRoute: function(latlng,regiment,callback){
-        console.log('url='+routeServiceUrl);
+    getRoute: function(latlng,source,callback){
+        console.log('url='+hostname+ '; latlng='+ JSON.stringify(latlng));
         if ( Route.service == 'google' ){
-            Route.getRouteGoogle(latlng,regiment,callback);
+            Route.getRouteGoogle(latlng,source,callback);
         }else if ( Route.service == 'spatialite'  ){
-            Route.getRouteSpatialite(latlng,regiment,callback);
+            Route.getRouteSpatialite(latlng,source,callback);
         }else if ( Route.service == 'osrm' ){
-            Route.getRouteOSRM(latlng,regiment,callback);
+            Route.getRouteOSRM(latlng,source,callback);
         }else{
-            Route.getRouteGoogle(latlng,regiment,callback);
+            Route.getRouteGoogle(latlng,source,callback);
         }
     },
     
     /**получение маршрута с сервиса маршрутов Google через JS API
     * @param latlng объект точки куда двигаться {lat:lat,lng:lng}
-    * @param regiment объект полка
+    * @param source объект точки откуда двигаться {lat:lat,lng:lng}
     * @param callback объект в который передается маршрут в виде массива точек и объект полка
     **/
-	getRouteGoogle: function(latlng,regiment,callback){
-		var start = new google.maps.LatLng(regiment.marker.type.getLatLng().lat, regiment.marker.type.getLatLng().lng);
+	getRouteGoogle: function(latlng,source,callback){
+		var start = new google.maps.LatLng(source.lat, source.lng);
 		var end = new google.maps.LatLng(latlng.lat, latlng.lng);
 		var request = {
 					  origin: start,
@@ -41,7 +44,7 @@ var Route =
     			for ( var i = 0; i < points.length; i++ ){
     				route.push([points[i]['k'],points[i]['D']]);
     			}
-                callback(route,regiment);
+                callback(route);
 			}
 		});
 	},
@@ -50,36 +53,37 @@ var Route =
     /**
     * получение маршрута от модуля Spatialite
     * @param latlng объект точки куда двигаться {lat:lat,lng:lng}
-    * @param regiment объект полка
+    * @param source source объект точки откуда двигаться {lat:lat,lng:lng}
     * @param callback функция обратного вызова в которую передается маршрут и объект полка
     **/
     
-    getRouteSpatialite: function(latlng,regiment,callback){
-		var start = [regiment.marker.type.getLatLng().lat, regiment.marker.type.getLatLng().lng];
+    getRouteSpatialite: function(latlng,source,callback){
+		var start = [source.lat, source.lng];
 		var end = [latlng.lat, latlng.lng];
-        var radius = regiment.type.radius;
-		var params = 'data=' + JSON.stringify([start,end,radius]);
-		Ajax.sendRequest('GET', 'http://' + routeServiceUrl + '/routespatialite', params, function(route) {
-			console.log(JSON.stringify(route));
-            callback(route,regiment);
+		var params = 'data=' + JSON.stringify([start,end]);
+		console.log('params='+params);
+        Ajax.sendRequest('GET', 'http://' + hostname + ':' + Route.SPATIALITE_PORT + '/routespatialite', params, function(route) {
+			console.log(JSON.stringify(route)+"\n\n");
+            callback(route);
 		});
 	},
     
     /**
     * получение маршрута от модуля OSRM
     * @param latlng объект точки куда двигаться {lat:lat,lng:lng}
-    * @param regiment объект полка
+    * @param source source объект точки откуда двигаться {lat:lat,lng:lng}
     * @param callback функция обратного вызова в которую передается маршрут и объект полка
     **/
     
-    getRouteOSRM: function(latlng,regiment,callback){
-		var start = [regiment.marker.type.getLatLng().lat, regiment.marker.type.getLatLng().lng];
+    getRouteOSRM: function(latlng,source,callback){
+        var start = [source.lat, source.lng];
 		var end = [latlng.lat, latlng.lng];
 		var params = 'data=' + JSON.stringify([start,end]);
-		Ajax.sendRequest('GET', 'http://' + routeServiceUrl + '/routeosrm', params, function(route) {
-			console.log(JSON.stringify(route));
-            callback(route,regiment);
+        console.log('params='+params);
+		Ajax.sendRequest('GET', 'http://' + hostname + ':' + Route.OSRM_PORT + '/routeosrm', params, function(route) {
+			console.log(JSON.stringify(route)+"\n\n");
+            callback(route);
 		});
 	}
-
+    
 }

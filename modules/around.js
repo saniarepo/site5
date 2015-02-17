@@ -2,7 +2,7 @@
 var Debug = require('./debug');
 var http = require('http');
 var ROUTE_SERVICE_HOSTNAME = '127.0.0.1'; /*хост сервиса маршрутов*/
-var ROUTE_SERVICE_PORT = 8001; /*порт сервиса маршрутов*/
+var ROUTE_SERVICE_PORT = 8001; /*порт сервиса расчета окружения*/
 
 
 /**
@@ -124,7 +124,7 @@ function findRouteToBases( index, source, targets, enemies, callback ){
     });
         
     req.on('error', function(e) {
-        console.log('problem with request: ' + e.message);
+        console.log('around: find route: problem with request: ' + e.message);
     });
     
     // write data to request body

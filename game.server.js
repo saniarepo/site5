@@ -15,7 +15,7 @@ var Handler = require('./modules/handler');
 var cons = require('consolidate');
 
 server.listen(port,function(){
-    console.log('Server start at port '+port+ ' ' + Helper.getTime());
+    console.log('Game server start at port '+port+ ' ' + Helper.getTime());
 });
 
 /* настройки для рендеринга шаблонов*/

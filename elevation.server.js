@@ -8,7 +8,7 @@ var time = require('./modules/sqlite3.el.srv/time');
 var bodyParser = require('body-parser');
 
 server.listen(port, function(){
-	console.log('Elevation service start at port '+port+ ' ' + Helper.getTime());
+	console.log('Elevation server start at port '+port+ ' ' + Helper.getTime());
 });
 
 app.use(express.static(__dirname+'/elevation/public'));
