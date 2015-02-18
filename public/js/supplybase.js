@@ -120,9 +120,9 @@ function SupplyBase( latlng, id )
 	
     /**
     * перемещение юнита в точку события по маршруту с анимацией
-    * @param e объект события
+    * @param latlng объект {lat:lat,lng:lng}
     **/
-	this.goRoute = function(e){
+	this.goRoute = function(latlng){
 		var object = this;
         var source = {lat: this.marker.type.getLatLng().lat, lng: this.marker.type.getLatLng().lng};
         Route.getRoute(latlng,source,function(route){    

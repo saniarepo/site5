@@ -120,7 +120,7 @@ function RegimentBase( latlng, id )
 	
     /**
     * перемещение юнита в точку события по маршруту с анимацией
-    * @param e объект события
+    * @param latlng объект {lat:lat,lng:lng}
     **/
 	this.goRoute = function(latlng){
         var object = this;
