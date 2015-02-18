@@ -62,22 +62,11 @@ var Route =
 		var end = [latlng.lat, latlng.lng];
 		var params = 'data=' + JSON.stringify([start,end]);
 		console.log('params='+params);
-        /*
+        
         Ajax.sendRequest('GET', 'http://' + hostname + ':' + Route.SPATIALITE_PORT + '/routespatialite', params, function(route) {
 			console.log(JSON.stringify(route)+"\n\n");
             callback(route);
-		});
-        */
-         var url = 'http://' + hostname + ':' + Route.SPATIALITE_PORT + '/routespatialite?'+params;
-		$.ajax({url:url, 
-			dataType:"json", 
-			jsonp:"jsonp", 
-			cache:true,
-			success: function(route){
-						console.log(JSON.stringify(route)+"\n\n");
-                        callback(route);
-					}
-		});
+		}); 
 	},
     
     /**
@@ -92,23 +81,11 @@ var Route =
 		var end = [latlng.lat, latlng.lng];
 		var params = 'data=' + JSON.stringify([start,end]);
         console.log('params='+params);
-		/*
+		
         Ajax.sendRequest('GET', 'http://' + hostname + ':' + Route.OSRM_PORT + '/routeosrm', params, function(route) {
 			console.log(JSON.stringify(route)+"\n\n");
             callback(route);
-		});
-        */
-        var url = 'http://' + hostname + ':' + Route.OSRM_PORT + '/routeosrm?'+params;
-		$.ajax({url:url, 
-			dataType:"json", 
-			jsonp:"jsonp", 
-			cache:true,
-			success: function(route){
-						console.log(JSON.stringify(route)+"\n\n");
-                        callback(route);
-					}
-		});
-        
+		});   
 	}
     
 }

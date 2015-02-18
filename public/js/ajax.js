@@ -32,7 +32,7 @@ var Ajax =
     * callback  
     **/
     sendRequest: function(method, url, params, callback){
-        XMLHttp = Ajax.getXMLHttp();
+        var XMLHttp = Ajax.getXMLHttp();
         if( method == 'GET' || method == 'get' ){
 			url += '?' + params;
 		}
