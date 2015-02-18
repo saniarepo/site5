@@ -49,8 +49,6 @@ function decode(encoded, precision) {
 * @param callback функция обратного вызова в которую передается маршрут 
 **/
 function getRoute( source, target, waypoints, callback  ){
-    console.log('getRoute:'+source+':'+target);
-    
     var results = '';
     var path = '/viaroute?';
     var start = 'loc='+source[0]+','+source[1]+'&';

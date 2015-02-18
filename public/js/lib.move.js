@@ -77,7 +77,7 @@ var Move =
 								var i = 0;
 								var pos = L.latLng( start.lat, start.lng );
 								var interval = setInterval( function(){
-									if ( Math.abs( pos.lat - end.lat ) >= regiment.getDelta() &&  Math.abs( pos.lng - end.lng ) >= regiment.getDelta() && Move.ENABLED )
+									if ( Math.abs( pos.lat - end.lat ) >= regiment.getDelta() &&  Math.abs( pos.lng - end.lng ) >= regiment.getDelta() && Move.ENABLED && !regiment.STOP )
 									{
 										if ( !Move.PAUSE ){
 				                            for ( marker in regiment.marker ) regiment.marker[marker].setLatLng( pos );

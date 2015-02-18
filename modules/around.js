@@ -3,6 +3,23 @@ var Debug = require('./debug');
 var http = require('http');
 var ROUTE_SERVICE_HOSTNAME = '127.0.0.1'; /*хост сервиса маршрутов*/
 var ROUTE_SERVICE_PORT = 8001; /*порт сервиса расчета окружения*/
+var unitsPositionsHash = 0; /*хеш позиций юнитов*/
+
+
+/**
+* получение хеша из позиций юнитов с целью определения 
+* было ли движение юнитов или нет
+**/
+function calcUnitsPositionsHash(game){
+    var hash = 0;
+    for (var i = 0; i < game.regiments.length; i++){
+        hash += game.regiments[i].latlng[0] + game.regiments[i].latlng[1];
+    }
+    for (var i = 0; i < game.bases.length; i++){
+        hash += game.bases[i].latlng[0] + game.bases[i].latlng[1];
+    }
+    return hash;
+}
 
 
 /**
@@ -48,7 +65,16 @@ function getEnemyRegimentsData(index, game){
 * @param callback функция обратного вызова, вызываемая по завершении работы функции
 **/			
 function setAround(index, game, callback){
-    if ( index == undefined || index == null ) {index = 0;}
+    if ( index == undefined || index == null ){
+        /*проверяем было ли изменение положения юнитов*/
+        var hash = calcUnitsPositionsHash(game);
+        if ( unitsPositionsHash == hash ){
+            callback();
+            return;
+        }
+        unitsPositionsHash = hash;
+        index = 0;
+    }
     if ( game.regiments[index] == undefined ) { return;}
     var source = {lat:game.regiments[index].latlng[0], lng:game.regiments[index].latlng[1], radius:game.regiments[index].type.radius};
     var targets = getOwnBaseData(index, game);

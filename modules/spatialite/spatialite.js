@@ -217,7 +217,7 @@ function routeQuery(from, to, callback){
 	}
     var start = latlng2node_id([from.lat,from.lng]);
     var end = latlng2node_id(to);
-	console.log(start+':'+end);
+	//console.log(start+':'+end);
 	var sql = "SELECT AsGeoJSON(geometry) AS geometry FROM roads_net WHERE ";
 	sql += "NodeFrom=" + start + " AND NodeTo=" + end; 
 	sql += " LIMIT 1;"

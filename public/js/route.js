@@ -10,7 +10,6 @@ var Route =
     directionsService: new google.maps.DirectionsService(),
 	
     getRoute: function(latlng,source,callback){
-        console.log('url='+hostname+ '; latlng='+ JSON.stringify(latlng));
         if ( Route.service == 'google' ){
             Route.getRouteGoogle(latlng,source,callback);
         }else if ( Route.service == 'spatialite'  ){
@@ -61,10 +60,7 @@ var Route =
 		var start = [source.lat, source.lng];
 		var end = [latlng.lat, latlng.lng];
 		var params = 'data=' + JSON.stringify([start,end]);
-		console.log('params='+params);
-        
         Ajax.sendRequest('GET', 'http://' + hostname + ':' + Route.SPATIALITE_PORT + '/routespatialite', params, function(route) {
-			console.log(JSON.stringify(route)+"\n\n");
             callback(route);
 		}); 
 	},
@@ -80,10 +76,7 @@ var Route =
         var start = [source.lat, source.lng];
 		var end = [latlng.lat, latlng.lng];
 		var params = 'data=' + JSON.stringify([start,end]);
-        console.log('params='+params);
-		
-        Ajax.sendRequest('GET', 'http://' + hostname + ':' + Route.OSRM_PORT + '/routeosrm', params, function(route) {
-			console.log(JSON.stringify(route)+"\n\n");
+        Ajax.sendRequest('GET', 'http://' + hostname + ':' + Route.OSRM_PORT + '/routeosrm', params, function(route) {	
             callback(route);
 		});   
 	}

@@ -28,7 +28,6 @@ app.get('/routeosrm',function(req,res){
 	osrm.getRoute(source, target, waypoints, function(route){
 		console.log('Executing time: '+time.stop());
 		res.writeHead(200, {"Content-Type": "text/html","Access-Control-Allow-Origin": "*"});
-		console.log(JSON.stringify(route));
         res.write(JSON.stringify(route));
 		res.end();	
 	});
