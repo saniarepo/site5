@@ -1,14 +1,15 @@
-/*РјРѕРґСѓР»СЊ РѕРїСЂРµРґРµР»РµРЅРёСЏ РѕРєСЂСѓР¶РµРЅРёСЏ РїРѕР»РєРѕРІ*/
+/*модуль определения окружения полков*/
 var Debug = require('./debug');
 var http = require('http');
-var ROUTE_SERVICE_HOSTNAME = '127.0.0.1'; /*С…РѕСЃС‚ СЃРµСЂРІРёСЃР° РјР°СЂС€СЂСѓС‚РѕРІ*/
-var ROUTE_SERVICE_PORT = 8001; /*РїРѕСЂС‚ СЃРµСЂРІРёСЃР° СЂР°СЃС‡РµС‚Р° РѕРєСЂСѓР¶РµРЅРёСЏ*/
-var unitsPositionsHash = 0; /*С…РµС€ РїРѕР·РёС†РёР№ СЋРЅРёС‚РѕРІ*/
-
+var ROUTE_SERVICE_HOSTNAME = '127.0.0.1'; /*хост сервиса маршрутов*/
+var ROUTE_SERVICE_PORT = 8001; /*порт сервиса расчета окружения*/
+var unitsPositionsHash = 0; /*хеш позиций юнитов*/
 
 /**
-* РїРѕР»СѓС‡РµРЅРёРµ С…РµС€Р° РёР· РїРѕР·РёС†РёР№ СЋРЅРёС‚РѕРІ СЃ С†РµР»СЊСЋ РѕРїСЂРµРґРµР»РµРЅРёСЏ 
-* Р±С‹Р»Рѕ Р»Рё РґРІРёР¶РµРЅРёРµ СЋРЅРёС‚РѕРІ РёР»Рё РЅРµС‚
+* получение хеша из позиций юнитов с целью определения 
+* было ли движение юнитов или нет
+* @param game объект игры
+* @return hash хеш от положений юнитов
 **/
 function calcUnitsPositionsHash(game){
     var hash = 0;
@@ -21,104 +22,88 @@ function calcUnitsPositionsHash(game){
     return hash;
 }
 
-
 /**
-* РїРѕР»СѓС‡РµРЅРёРµ РєРѕРѕСЂРґРёРЅР°С‚ СЃРІРѕРёС… Р±Р°Р·
-* @param index РёРЅРґРµРєСЃ РїРѕР»РєР° РІ РјР°СЃСЃРёРІРµ РїРѕР»РєРѕРІ
-* @param game РѕР±СЉРµРєС‚ РёРіСЂС‹
-* @return РґР°РЅРЅС‹Рµ Р±Р°Р·  РІ РІРёРґРµ РјР°СЃСЃРёРІР° РѕР±СЉРµРєС‚РѕРІ РІРёРґР° {lat:lat, lng:lng, radius:radius} 
+* массива объектов полков для отправки на сервер для расчета окружения
+* @param game объект игры
+* @return regiments массив объектов полков
 **/
-function getOwnBaseData(index, game){
-    var baseData = [];
-    var basesLen = game.bases.length;
-    for ( var i = 0; i < basesLen; i++ ){
-        if (game.bases[i] == undefined || game.regiments[index] == undefined) continue;
-        if ( game.bases[i].country.id == game.regiments[index].country.id ) {
-            baseData.push({lat: game.bases[i].latlng[0], lng: game.bases[i].latlng[1], radius: game.bases[i].type.radius});
-        }
+function getRegimentsData(game){
+    var regiments = [];
+    var item = null;
+    for ( var i = 0; i < game.regiments.length; i++ ){
+        item = game.regiments[i];
+        regiments.push({id:item.id, country:item.country.id,lat:item.latlng[0],lng:item.latlng[1],radius:item.type.radius});
     }
-    return baseData;
+    return regiments;
 }
 
 /**
-* РїРѕР»СѓС‡РµРЅРёРµ РґР°РЅРЅС‹С… РІСЂР°Р¶РµСЃРєРёС… РїРѕР»РєРѕРІ
-* @param index РёРЅРґРµРєСЃ РїРѕР»РєР° РІ РјР°СЃСЃРёРІРµ РїРѕР»РєРѕРІ
-* @param game РѕР±СЉРµРєС‚ РёРіСЂС‹
-* @return РґР°РЅРЅС‹Рµ РїРѕ РїРѕР»РєР°Рј РїСЂРѕС‚РёРІРЅРёРєР° РІ РІРёРґРµ РјР°СЃСЃРёРІР° РѕР±СЉРµРєС‚РѕРІ {lat:lat, lng:lng, radius: radius} 
+* массива объектов баз для отправки на сервер для расчета окружения
+* @param game объект игры
+* @return bases массив объектов баз
 **/
-function getEnemyRegimentsData(index, game){
-    var enemyData = [];
-    var regimentsLen = game.regiments.length;
-    for ( var i = 0; i < regimentsLen; i++ ){
-        if (game.regiments[i] == undefined || game.regiments[index] == undefined) continue;
-        if ( game.regiments[i].country.id != game.regiments[index].country.id ){
-            enemyData.push({lat:game.regiments[i].latlng[0], lng:game.regiments[i].latlng[1], radius:game.regiments[i].type.radius});
-        }
+function getBasesData(game){
+    var bases = [];
+    var item = null;
+    for ( var i = 0; i < game.bases.length; i++ ){
+        item = game.bases[i];
+        bases.push({id:item.id, country:item.country.id,lat:item.latlng[0],lng:item.latlng[1],radius:item.type.radius});
     }
-    return enemyData;
+    return bases;
 }
 
 /**
-* РѕРїСЂРµРґРµР»РµРЅРёРµ РѕРєСЂСѓР¶РµРЅРёСЏ РїРѕР»РєР°
-* @param index РёРЅРґРµРєСЃ РїРѕР»РєР° РІ РјР°СЃСЃРёРІРµ РїРѕР»РєРѕРІ
-* @param game РѕР±СЉРµРєС‚ РёРіСЂС‹
-* @param callback С„СѓРЅРєС†РёСЏ РѕР±СЂР°С‚РЅРѕРіРѕ РІС‹Р·РѕРІР°, РІС‹Р·С‹РІР°РµРјР°СЏ РїРѕ Р·Р°РІРµСЂС€РµРЅРёРё СЂР°Р±РѕС‚С‹ С„СѓРЅРєС†РёРё
-**/			
-function setAround(index, game, callback){
-    if ( index == undefined || index == null ){
-        /*РїСЂРѕРІРµСЂСЏРµРј Р±С‹Р»Рѕ Р»Рё РёР·РјРµРЅРµРЅРёРµ РїРѕР»РѕР¶РµРЅРёСЏ СЋРЅРёС‚РѕРІ*/
-        var hash = calcUnitsPositionsHash(game);
-        if ( unitsPositionsHash == hash ){
-            callback();
-            return;
-        }
-        unitsPositionsHash = hash;
-        index = 0;
+* определение окружения полков
+* @param game объект игры
+* @param callback функция обратного вызова, вызываемая по завершении работы функции
+**/
+function setAround(game, callback){
+    /*проверяем было ли изменение положения юнитов*/
+    var hash = calcUnitsPositionsHash(game);
+    if ( unitsPositionsHash == hash ){
+        callback();
+        return;
     }
-    if ( game.regiments[index] == undefined ) { return;}
-    var source = {lat:game.regiments[index].latlng[0], lng:game.regiments[index].latlng[1], radius:game.regiments[index].type.radius};
-    var targets = getOwnBaseData(index, game);
-    var enemies = getEnemyRegimentsData(index, game);
-    //console.log(source+':'+targets+':'+enemies);
-    findRouteToBases(index, source, targets, enemies, function(index, result){
-       if ( game.regiments[index] != undefined ){
-            //console.log('result='+result);
-            /*СЃРѕР·РґР°РµРј РёРіСЂРѕРІРѕРµ СЃРѕРѕР±С‰РµРЅРёРµ*/
-            if ( game.regiments[index].around == result ){
-                if ( result ){
-                    game.addGameMessage(game.gameMsgText('endAround',game.regiments[index]));
-                }else{
-                    game.addGameMessage(game.gameMsgText('beginAround',game.regiments[index]));
-                }
-            }
-            game.regiments[index].around = !result;
-	    }
+    unitsPositionsHash = hash;
+    
+    var regiments = getRegimentsData(game);
+    var bases = getBasesData(game);
+    sendRequestAround(regiments, bases, function(result){
+        //console.log('result: '+JSON.stringify(result));
+        if (result){
+            for (var i =0; i < game.regiments.length; i++)
+                for ( var j = 0; j < result.length; j++ ){
+                    if ( game.regiments[i].id == result[j].id ){
+                        if ( game.regiments[i].around != result[j].around ){
+                            if ( result[j].around ){
+                                game.addGameMessage(game.gameMsgText('beginAround',game.regiments[i]));
+                            }else{
+                                game.addGameMessage(game.gameMsgText('endAround',game.regiments[i]));
+                            }
+                        }
+                        game.regiments[i].around = result[j].around;
+                        break;
+                    }
+                }      
+
+        }
+        callback();
     });
-    /*   */  
-	index++;
-	if (index < game.regiments.length ) {
-		setAround(index, game, callback);
-	}else{
-	   callback();
-       return;
-	}
 }
 
+
 /**
-* РїРѕР»СѓС‡РµРЅРёРµ РґР°РЅРЅС‹С… Рѕ РЅР°Р»РёС‡РёРё РјР°СЂС€СЂСѓС‚Р° РѕС‚ РїРѕР»РєР° РґРѕ Р»СЋР±РѕР№
-* РёР· СЃРІРѕРёС… Р±Р°Р· СЃ СЃРµСЂРІРµСЂР° РјР°СЂС€СЂСѓС‚РѕРІ С‡РµСЂРµР· РѕС‚РїСЂР°РІРєСѓ HTTP POST Р·Р°РїСЂРѕСЃР° 
-* @param index РёРЅРґРµРєСЃ РїРѕР»РєР° РІ РјР°СЃСЃРёРІРµ РїРѕР»РєРѕРІ
-* @param source РѕР±СЉРµРєС‚ РїРѕР»РєР° РІРёРґР° {lat:lat,lng:lng,radius:radius}
-* @param targets РјР°СЃСЃРёРІ РѕР±СЉРµРєС‚РѕРІ СЃРІРѕРёС… Р±Р°Р· РІРёРґР° [{lat:lat,lng:lng,radius:radius},...]
-* @param enemies РјР°СЃСЃРёРІ РѕР±СЉРµРєС‚РѕРІ РїРѕР»РєРѕРІ РІСЂР°РіР° РІРёРґР° [{lat:lat,lng:lng,radius:radius}, ...]
-* @param callback С„СѓРЅРєС†РёСЏ РѕР±СЂР°С‚РЅРѕРіРѕ РІС‹Р·РѕРІР°, РІ РєРѕС‚РѕСЂСѓСЋ РїРµСЂРµРґР°РµС‚СЃСЏ РѕР±СЂР°С‚РЅРѕ РёРЅРґРµРєСЃ Рё 
-* СЂРµР·СѓР»СЊС‚Р°С‚ РїРѕРёСЃРєР° РјР°СЂС€СЂСѓС‚Р° РІ РІРёРґРµ true ( РµСЃР»Рё РµСЃС‚СЊ ) РёР»Рё false ( РµСЃР»Рё РЅРµС‚ )
+* отправка данных об положении юнитов и получение 
+* статуса их окружения  через отправку HTTP POST запроса 
+* @param regiments массив объектов полков вида [{lat:lat,lng:lng,radius:radius,id:id,country:country}, ...]
+* @param bases массив объектов баз вида [{lat:lat,lng:lng,radius:radius,id:id,country:country}, ...]
+* @param callback функция обратного вызова, в которую передается обратно  
+* результат расчета окружения полков в виде [{id:id, around:true}, {id:id, around:false},...]
 **/
-function findRouteToBases( index, source, targets, enemies, callback ){
-    var path = '/routetobases';
-    var params = 'source=' + JSON.stringify(source) + '&';
-    params += 'targets=' + JSON.stringify(targets) + '&';
-    params += 'enemies=' + JSON.stringify(enemies);
+function sendRequestAround( regiments, bases, callback ){
+    var path = '/around';
+    var params = 'regiments=' + JSON.stringify(regiments) + '&';
+    params += 'bases=' + JSON.stringify(bases);
     var results = '';
     var options = {
                     hostname: ROUTE_SERVICE_HOSTNAME,
@@ -136,21 +121,21 @@ function findRouteToBases( index, source, targets, enemies, callback ){
                 });
                 res.on('end',function(){
                    result = JSON.parse(results);
-                   callback(index, result); 
+                   callback(result); 
                 });
         }
         else{
                 res.setEncoding('utf8');
                 res.on('data', function (chunk) {
                     //console.log(chunk);
-                    callback(index, false);
+                    callback(false);
                 });      
         }
         
     });
         
     req.on('error', function(e) {
-        console.log('around: find route: problem with request: ' + e.message);
+        console.log('around: problem with request: ' + e.message);
     });
     
     // write data to request body
@@ -159,7 +144,7 @@ function findRouteToBases( index, source, targets, enemies, callback ){
 }
 
 /**
-* РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РјРѕРґСѓР»СЏ
+* инициализация модуля
 **/
 function init(db_file, callback){
     var path = '/init';
@@ -201,6 +186,7 @@ function init(db_file, callback){
     req.write(params);
     req.end();
 }
+
 
 exports.setAround = setAround;
 exports.init = init;

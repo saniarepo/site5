@@ -223,13 +223,12 @@ function user_live( socket, sdata ){
 **/
 function check_around(socket,sdata){
     socket.on('check_around', function(data){
-       
         if ( sdata.game == null ){
             socket.emit('check_around_done');
             return true;
         }
         if ( data.user.id == sdata.game.users[0].id ){
-            around.setAround(null, sdata.game, function(){
+            around.setAround(sdata.game, function(){
                 socket.emit('check_around_done');
             });
         }

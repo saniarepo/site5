@@ -62,4 +62,18 @@ app.post('/routetobases',function(req,res){
      
 });
 
+/*маршрут для POST запроса к модулю spatialite для вычисления окружения юнитов*/
+app.post('/around',function(req,res){
+    var regiments = JSON.parse(req.body.regiments);
+	var bases = JSON.parse(req.body.bases);
+	time.start();
+	spatialite.around(regiments, bases, function(result){
+		console.log('Executing time: '+time.stop());
+		res.writeHead(200, {"Content-Type": "text/html","Access-Control-Allow-Origin": "*"});
+		res.write(JSON.stringify(result));
+		res.end();
+	});
+     
+});
+
 

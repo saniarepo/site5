@@ -101,7 +101,7 @@ function getRoute( source, target, waypoints, callback  ){
     });
         
     req.on('error', function(e) {
-        console.log('problem with request: ' + e.message);
+        console.log('osrm.route: problem with request: ' + e.message);
     });
     
     req.end();

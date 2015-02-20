@@ -95,7 +95,7 @@ function loadRoads(callback){
 /**
 * получение узлов графа из базы в виде массива объектов и запись в массив nodes
 * @param callback функция обратного вызова
-* nodes - массив объектов вида {node_id:node_id,cardinality:cardinality,lat:lat,lng:lng}
+* nodes - массив объектов вида {node_id:node_id,cardinality:cardinality,lat:lat,lng:lng, connected:connected, allowed:allowed,access:access}
 **/
 function loadNodes(callback){
 	var sql = "SELECT node_id, cardinality, Y(geometry) AS lat, X(geometry) AS lng FROM roads_nodes"; 
@@ -105,6 +105,8 @@ function loadNodes(callback){
 				if ( rows != null ){
 					for ( var i = 0; i < rows.length; i++ ){
 						rows[i].connected = false;
+                        rows[i].allowed = true;
+                        rows[i].access = false;
                         nodes.push(rows[i]);
 					}			
 				}
@@ -240,655 +242,6 @@ function routeQuery(from, to, callback){
 
 
 /**
-* определение маршрута по алгоритму Дейкстры
-* @param from начальная точка
-* @param to конечная точка
-* @param callback функция обратного вызова в которую передается результат в виде
-* массива точек [[lat1, lng1], [lat2,lng2],...]]
-**/
-
-function routeDijkstra(from, to, callback){
-	var visited = []; /**посещенные вершины с постоянной меткой**/
-    var label = [];/**метки вершин**/
-    var prev = [];/**предыдущие вершины**/
-	var cost = 0;
-	var min = 0;
-    start = latlng2node_id(from);
-    end = latlng2node_id(to);
-	console.log(start+':'+end);
-	curr = start;
-	var tempLabel = 0;
-    for ( var i = 0; i < n; i++ ){
-	   visited.push(0);
-	   label.push(INF);
-	   prev.push(0);
-	}
-	label[curr-1] = 0;
-	while ( visited[end-1] == 0 ){
-		for ( var i = 0; i < n; i++ ){
-			if ( visited[i] == 1 ) continue;
-			cost = getCost(curr,i+1,[]);
-			tempLabel = label[curr-1] + cost;
-			if ( tempLabel > INF ) tempLabel = INF;
-			if ( label[i] > tempLabel ){
-				label[i] = tempLabel;
-				prev[i] = curr;
-			}	
-		}
-		visited[curr-1] = 1;
-		min = INF;
-		index = curr-1;
-		for ( var i = 0; i < n; i++ ){
-			if ( visited[i] == 1 ) continue;
-			if ( min > label[i] ){
-				min = label[i];
-				index = i;
-			}	
-		}
-		if ( min == INF ) break; 
-		curr = index+1;
-		//console.log(curr);
-	}
-	if ( label[end-1] == INF ){
-		callback([]);
-		return false;
-	}
-	//вывод результатов
-    var lengthPath = label[end-1];
-	var path = [];
-	path.push(end);
-	curr = end;
-	while( prev[curr-1] != start ){
-		path.push(prev[curr-1]);
-		curr = prev[curr-1];
-	}
-	path.push(start);
-	path.reverse();
-	callback(path2route(path));
-}
-
-/**
-* определение маршрута по алгоритму Дейкстры вариант 2
-* @param from начальная точка
-* @param to конечная точка
-* @param callback функция обратного вызова в которую передается результат в виде
-* массива точек [[lat1, lng1], [lat2,lng2],...]]
-**/
-function routeDijkstra2(from, to, callback){
-    var visited = []; /**посещенные вершины с постоянной меткой**/
-    var label = [];/**метки вершин**/
-    var prev = [];/**предыдущие вершины**/
-	var cost = 0;
-	var min = 0;
-    start = latlng2node_id(from);
-    end = latlng2node_id(to);
-	console.log(start+':'+end);
-	curr = start;
-	var tempLabel = 0;
-    for ( var i = 0; i < n; i++ ){
-	   visited.push(0);
-	   label.push(INF);
-	   prev.push(0);
-	}
-	label[curr-1] = 0;
-	while ( visited[end-1] == 0 ){
-		for ( var i = 0; i < n; i++ ){
-			if ( visited[i] == 1 ) continue;
-			cost = getCost(curr,i+1,[]);
-			tempLabel = label[curr-1] + cost;
-			if ( tempLabel > INF ) tempLabel = INF;
-			if ( label[i] > tempLabel ){
-				label[i] = tempLabel;
-				prev[i] = curr;
-			}	
-		}
-		visited[curr-1] = 1;
-		min = INF;
-		index = curr-1;
-		for ( var i = 0; i < n; i++ ){
-			if ( visited[i] == 1 ) continue;
-			if ( min > label[i] ){
-				min = label[i];
-				index = i;
-			}	
-		}
-		if ( min == INF ) break; 
-		curr = index+1;
-		//console.log(curr);
-	}
-	if ( label[end-1] == INF ){
-		callback([]);
-		return false;
-	}
-	//вывод результатов
-    var lengthPath = label[end-1];
-	var path = [];
-	path.push(end);
-	curr = end;
-	while( prev[curr-1] != start ){
-		path.push(prev[curr-1]);
-		curr = prev[curr-1];
-	}
-	path.push(start);
-	path.reverse();
-	callback(path2route(path));
-}
-
-/**
-* определение маршрута по алгоритму Дейкстры вариант 3, с усечением графа
-* @param from начальная точка
-* @param to конечная точка
-* @param callback функция обратного вызова в которую передается результат в виде
-* массива точек [[lat1, lng1], [lat2,lng2],...]]
-**/
-
-function routeDijkstra3(from, to, callback){
-	var visited = []; /**посещенные вершины с постоянной меткой**/
-    var label = [];/**метки вершин**/
-    var prev = [];/**предыдущие вершины**/
-    var nodes_part = []; /**индексный массив части обсчитываемых вершин**/
-	var u = 0; /**длина индексного массива части обсчитываемых вершин**/
-
-	//определяем границы
-	
-	var delta = Math.max(Math.abs(from[0] - to[0]),Math.abs(from[1] - to[1]))*margin;
-	var lat_min = Math.min(from[0], to[0]) - delta;
-	if ( lat_min < -90 ){ lat_min = -90;} else if ( lat_min > 90 ){lat_min = 90;}
-	var lat_max = Math.max(from[0], to[0]) + delta;
-	if ( lat_min < -90 ){ lat_min = -90;} else if ( lat_min > 90 ){lat_min = 90;}
-	var lng_min = Math.min(from[1], to[1]) - delta;
-	if ( lng_min < -180 ){ lng_min = 360 + lng_min;} else if ( lng_min > 180 ){ lng_min = lng_min - 360;}
-	var lng_max = Math.max(from[1], to[1]) + delta;
-	if ( lng_max < -180 ){ lng_max = 360 + lng_max;} else if ( lng_max > 180 ){ lng_max = lng_max - 360;}
-	
-	console.log('lat_min: '+lat_min+'\nlat_max: '+lat_max+'\nlng_min: '+lng_min+'\nlng_max: '+lng_max);
-	//отбираем нужную часть графа
-	for ( var i = 0; i < n; i++ ){
-		var lat = nodes[i].lat;
-		var lng = nodes[i].lng;
-		if ( lat < lat_max && lat > lat_min && lng < lng_max && lng > lng_min ){
-			nodes_part.push(i);
-		}
-	}
-	u = nodes_part.length;
-	console.log(u);
-	//определяем начало и конец в усеченном графе
-	var start = latlng2node_id_part(from,nodes_part,u);
-    var end = latlng2node_id_part(to,nodes_part,u);
-	console.log(start+':'+end);
-	//расчет маршрута
-	var curr = start;
-    for ( var i = 0; i < u; i++ ){
-	   visited.push(0);
-	   label.push(INF);
-	   prev.push(0);
-	}
-    var tempLabel = 0;
-	visited[curr] = 1;
-	label[curr] = 0;
-	while(visited[end] == 0){
-		for ( i = 0; i < u; i++ ){
-			if ( visited[i] == 1 ) continue;
-			var cost = getCost(nodes_part[curr]+1,nodes_part[i]+1, []);
-			tempLabel = (cost + label[curr]);
-			if (tempLabel > INF) tempLabel = INF;
-			if ( label[i] > tempLabel){
-				label[i] = tempLabel;
-				prev[i] = curr;
-			}//end if
-		}//end for
-		var min = INF;
-		var index = curr;
-		for ( var i = 0; i < u; i++ ){
-			if ( visited[i] == 1 ) continue;
-			if ( label[i] < min ){
-				min = label[i];
-				index = i;
-			}
-		}//end for
-		visited[index] = 1; //присваиваем узлу постоянную метку
-		curr = index;
-		if ( min == INF ) break;
-	}//end while
-	if ( label[end] == INF ){
-		callback([]);
-		return false;
-	} 
-	//вывод результатов
-	var lengthPath = label[end];
-	var path = [];
-	path.push(nodes_part[end]+1);
-	curr = end;
-	while( prev[curr] != start ){
-		path.push(nodes_part[prev[curr]]+1);
-		curr = prev[curr];
-	}
-	path.push(nodes_part[start]+1);
-	path.reverse();
-	callback(path2route(path));
-}
-
-
-/**
-* определение маршрута по алгоритму Дейкстры вариант 4 с обходом полков неприятеля
-* @param from начальная точка
-* @param to конечная точка
-* @param enemy массив полков неприятеля вида [{lat:lat, lng:lng, radius:radius}, ...]
-* @param callback функция обратного вызова в которую передается результат в виде
-* массива точек [[lat1, lng1], [lat2,lng2],...]]
-**/
-function routeDijkstraEnemy(from, to, enemy, callback){
-    var visited = []; /**посещенные вершины с постоянной меткой**/
-    var label = [];/**метки вершин**/
-    var prev = [];/**предыдущие вершины**/
-	var cost = 0;
-	var min = 0;
-    start = latlng2node_id(from);
-    end = latlng2node_id(to);
-	console.log(start+':'+end);
-	curr = start;
-	var banned = getBannedNodesId(enemy);
-	var tempLabel = 0;
-    for ( var i = 0; i < n; i++ ){
-	   visited.push(0);
-	   label.push(INF);
-	   prev.push(0);
-	}
-	label[curr-1] = 0;
-	while ( visited[end-1] == 0 ){
-		for ( var i = 0; i < n; i++ ){
-			if ( visited[i] == 1 ) continue;
-			cost = getCost(curr,i+1,banned);
-			tempLabel = label[curr-1] + cost;
-			if ( tempLabel > INF ) tempLabel = INF;
-			if ( label[i] > tempLabel ){
-				label[i] = tempLabel;
-				prev[i] = curr;
-			}	
-		}
-		visited[curr-1] = 1;
-		min = INF;
-		index = curr-1;
-		for ( var i = 0; i < n; i++ ){
-			if ( visited[i] == 1 ) continue;
-			if ( min > label[i] ){
-				min = label[i];
-				index = i;
-			}	
-		}
-		if ( min == INF ) break; 
-		curr = index+1;
-		//console.log(curr);
-	}
-	if ( label[end-1] == INF ){
-		callback([]);
-		return false;
-	}
-	//вывод результатов
-    var lengthPath = label[end-1];
-	var path = [];
-	path.push(end);
-	curr = end;
-	while( prev[curr-1] != start ){
-		path.push(prev[curr-1]);
-		curr = prev[curr-1];
-	}
-	path.push(start);
-	path.reverse();
-	callback(path2route(path));
-}
-
-
-/**
-* определение маршрута по алгоритму Дейкстры вариант 5 с обходом полков неприятеля
-* и c усечением графа
-* @param from начальная точка
-* @param to конечная точка
-* @param enemy массив полков неприятеля вида [{lat:lat, lng:lng, radius:radius}, ...]
-* @param callback функция обратного вызова в которую передается результат в виде
-* массива точек [[lat1, lng1], [lat2,lng2],...]]
-**/
-function routeDijkstraEnemy2(from, to, enemy, callback){
-    var visited = []; /**посещенные вершины с постоянной меткой**/
-    var label = [];/**метки вершин**/
-    var prev = [];/**предыдущие вершины**/
-	var cost = 0;
-	var min = 0;
-	var nodes_part = []; /**индексный массив части обсчитываемых вершин**/
-	var u = 0; /**длина индексного массива части обсчитываемых вершин**/
-
-	//определяем границы
-	
-	var delta = Math.max(Math.abs(from[0] - to[0]),Math.abs(from[1] - to[1]))*margin2;
-	var lat_min = Math.min(from[0], to[0]) - delta;
-	if ( lat_min < -90 ){ lat_min = -90;} else if ( lat_min > 90 ){lat_min = 90;}
-	var lat_max = Math.max(from[0], to[0]) + delta;
-	if ( lat_min < -90 ){ lat_min = -90;} else if ( lat_min > 90 ){lat_min = 90;}
-	var lng_min = Math.min(from[1], to[1]) - delta;
-	if ( lng_min < -180 ){ lng_min = 360 + lng_min;} else if ( lng_min > 180 ){ lng_min = lng_min - 360;}
-	var lng_max = Math.max(from[1], to[1]) + delta;
-	if ( lng_max < -180 ){ lng_max = 360 + lng_max;} else if ( lng_max > 180 ){ lng_max = lng_max - 360;}
-	
-	console.log('lat_min: '+lat_min+'\nlat_max: '+lat_max+'\nlng_min: '+lng_min+'\nlng_max: '+lng_max);
-	//отбираем нужную часть графа
-	for ( var i = 0; i < n; i++ ){
-		var lat = nodes[i].lat;
-		var lng = nodes[i].lng;
-		if ( lat < lat_max && lat > lat_min && lng < lng_max && lng > lng_min ){
-			nodes_part.push(i);
-		}
-	}
-	u = nodes_part.length;
-    //определяем начало и конец в усеченном графе
-	var start = latlng2node_id_part(from,nodes_part,u);
-    var end = latlng2node_id_part(to,nodes_part,u);
-	console.log(start+':'+end);
-	var curr = start;
-    for ( var i = 0; i < u; i++ ){
-	   visited.push(0);
-	   label.push(INF);
-	   prev.push(0);
-	}
-    var tempLabel = 0;
-	visited[curr] = 1;
-	label[curr] = 0;
-	var banned = getBannedNodesId(enemy);
-	while ( visited[end] == 0 ){
-		for ( var i = 0; i < u; i++ ){
-			if ( visited[i] == 1 ) continue;
-			cost = getCost(nodes_part[curr]+1,nodes_part[i]+1,banned);
-			tempLabel = label[curr] + cost;
-			if ( tempLabel > INF ) tempLabel = INF;
-			if ( label[i] > tempLabel ){
-				label[i] = tempLabel;
-				prev[i] = curr;
-			}	
-		}
-		visited[curr] = 1;
-		min = INF;
-		index = curr;
-		for ( var i = 0; i < u; i++ ){
-			if ( visited[i] == 1 ) continue;
-			if ( min > label[i] ){
-				min = label[i];
-				index = i;
-			}	
-		}
-		if ( min == INF ) break; 
-		curr = index;
-		//console.log(curr);
-	}
-	if ( label[end] == INF ){
-		callback([]);
-		return false;
-	}
-	//вывод результатов
-	var lengthPath = label[end];
-	var path = [];
-	path.push(nodes_part[end]+1);
-	curr = end;
-	while( prev[curr] != start ){
-		path.push(nodes_part[prev[curr]]+1);
-		curr = prev[curr];
-	}
-	path.push(nodes_part[start]+1);
-	path.reverse();
-	callback(path2route(path));
-}
-
-
-/**
-* определение маршрута методом обхода в ширину
-* @param from начальная точка
-* @param to конечная точка
-* @param callback функция обратного вызова в которую передается результат в виде
-* массива точек [[lat1, lng1], [lat2,lng2],...]]
-**/
-function bypassingWide(from, to, callback){
-	var queue = []; /**очередь**/
-	var used = []; /**посещенные вершины**/
-	var prev = []; /**предки вершин**/
-	for ( var i = 0; i < n; i++ ){
-		used[i] = false;
-		prev[i] = 0;
-	}
-	var start = latlng2node_id(from);
-    var end = latlng2node_id(to);
-	console.log(start+':'+end);
-	var curr = start;
-	var id = null;
-	used[start-1] = true;
-	queue.push(start);
-	while( queue.length > 0 ){
-		curr = queue[0];
-		if ( curr == end ) break;
-		for ( var i = index_from[curr-1]; i < index_from[curr-1] + index_size[curr-1]; i++ ){
-			id = roads[i].node_to;
-			if ( !used[id-1] ){
-				used[id-1] = true;
-				queue.push(id);
-				prev[id-1] = curr;
-			}
-		}
-		queue.shift();
-	}
-	if ( !used[end-1] ){
-		callback([]);
-		return false;
-	}
-	//вывод результатов
-	var path = [];
-	path.push(end);
-	curr = end;
-	while( prev[curr-1] != start ){
-		path.push(prev[curr-1]);
-		curr = prev[curr-1];
-	}
-	path.push(start);
-	path.reverse();
-	callback(path2route(path));
-}
-
-/**
-* определение маршрута методом обхода в ширину с обходом полков неприятеля
-* @param from начальная точка
-* @param to конечная точка
-* @param enemy массив полков неприятеля вида [{lat:lat, lng:lng, radius:radius}, ...]
-* @param callback функция обратного вызова в которую передается результат в виде
-* массива точек [[lat1, lng1], [lat2,lng2],...]]
-**/
-function bypassingWideEnemy(from, to, enemy, callback){
-	var queue = []; /**очередь**/
-	var used = []; /**посещенные вершины**/
-	var prev = []; /**предки вершин**/
-	for ( var i = 0; i < n; i++ ){
-		used[i] = false;
-		prev[i] = 0;
-	}
-	var start = latlng2node_id(from);
-    var end = latlng2node_id(to);
-	console.log(start+':'+end);
-	var curr = start;
-	var id = null;
-	used[start-1] = true;
-	queue.push(start);
-	var banned = getBannedNodesId(enemy);
-	while( queue.length > 0 ){
-		curr = queue[0];
-		if ( curr == end ) break;
-		for ( var i = index_from[curr-1]; i < index_from[curr-1] + index_size[curr-1]; i++ ){
-			id = roads[i].node_to;
-			if ( banned.indexOf(id) != -1 ) continue;
-			if ( !used[id-1] ){
-				used[id-1] = true;
-				queue.push(id);
-				prev[id-1] = curr;
-			}
-		}
-		queue.shift();
-	}
-	if ( !used[end-1] ){
-		callback([]);
-		return false;
-	}
-	//вывод результатов
-	var path = [];
-	path.push(end);
-	curr = end;
-	while( prev[curr-1] != start ){
-		path.push(prev[curr-1]);
-		curr = prev[curr-1];
-	}
-	path.push(start);
-	path.reverse();
-	callback(path2route(path));
-}
-
-/**
-* определение маршрута волновым алгоритмом
-* @param from начальная точка
-* @param to конечная точка
-* @param callback функция обратного вызова в которую передается результат в виде
-* массива точек [[lat1, lng1], [lat2,lng2],...]]
-**/
-function routeWave(from, to, callback){
-	if (!ready){
-	   callback(true);
-       return;
-	}
-    var waveLabel = []; /**волновая метка**/
-	var T = 0;/**время**/
-	var oldFront = [];/**старый фронт**/
-	var newFront = [];/**новый фронт**/
-	var prev = []; /**предки вершин**/
-	var curr = null;
-	var id = null;
-	for ( var i = 0; i < n; i++ ){
-		waveLabel[i] = -1;
-		prev[i] = 0;
-	}
-	var start = latlng2node_id(from);
-    var end = latlng2node_id(to);
-	console.log(start+':'+end);
-	waveLabel[start-1] = 0;
-	oldFront.push(start);
-	while (true){
-		//console.log(JSON.stringify(oldFront));
-		for ( var i = 0; i < oldFront.length; i++ ){
-			curr = oldFront[i];
-			//console.log('curr='+curr);
-			for ( j = index_from[curr-1]; j < index_from[curr-1] + index_size[curr-1]; j++ ){
-				id = roads[j].node_to;
-				//console.log('id='+id);
-				//console.log('waveLabel[id]='+waveLabel[id-1] );
-				if ( waveLabel[id-1] == -1 ){
-					waveLabel[id-1] = T + 1;
-					newFront.push(id);
-					prev[id-1] = curr;
-				}
-				
-				if ( id == end ){
-					//решение найдено
-					//вывод результатов
-					var path = [];
-					path.push(end);
-					curr = end;
-					while( prev[curr-1] != start ){
-						path.push(prev[curr-1]);
-						curr = prev[curr-1];
-					}
-					path.push(start);
-					path.reverse();
-					callback(path2route(path));
-					return true;
-				}
-			}
-		}
-		if ( newFront.length == 0 ){
-			callback([]);
-			return false;
-		}
-		oldFront = newFront;
-		newFront = [];
-		T++;
-	}
-}
-
-/**
-* определение маршрута волновым алгоритмом с обходом полков неприятеля
-* @param from начальная точка
-* @param to конечная точка
-* @param enemy массив полков неприятеля вида [{lat:lat, lng:lng, radius:radius}, ...]
-* @param callback функция обратного вызова в которую передается результат в виде
-* массива точек [[lat1, lng1], [lat2,lng2],...]]
-**/
-function routeWaveEnemy(from, to, enemy, callback){
-	if (!ready){
-	   callback(true);
-       return;
-	}
-    var waveLabel = []; /**волновая метка**/
-	var T = 0;/**время**/
-	var oldFront = [];/**старый фронт**/
-	var newFront = [];/**новый фронт**/
-	var prev = []; /**предки вершин**/
-	var curr = null;
-	var id = null;
-	for ( var i = 0; i < n; i++ ){
-		waveLabel[i] = -1;
-		prev[i] = 0;
-	}
-	var start = latlng2node_id(from);
-    var end = latlng2node_id(to);
-	console.log(start+':'+end);
-	waveLabel[start-1] = 0;
-	oldFront.push(start);
-	var banned = getBannedNodesId(enemy);
-	while (true){
-		//console.log(JSON.stringify(oldFront));
-		for ( var i = 0; i < oldFront.length; i++ ){
-			curr = oldFront[i];
-			//console.log('curr='+curr);
-			for ( j = index_from[curr-1]; j < index_from[curr-1] + index_size[curr-1]; j++ ){
-				id = roads[j].node_to;
-				if ( banned.indexOf(id) != -1 ) continue;
-				//console.log('id='+id);
-				//console.log('waveLabel[id]='+waveLabel[id-1] );
-				if ( waveLabel[id-1] == -1 ){
-					waveLabel[id-1] = T + 1;
-					newFront.push(id);
-					prev[id-1] = curr;
-				}
-				
-				if ( id == end ){
-					//решение найдено
-					//вывод результатов
-					var path = [];
-					path.push(end);
-					curr = end;
-					while( prev[curr-1] != start ){
-						path.push(prev[curr-1]);
-						curr = prev[curr-1];
-					}
-					path.push(start);
-					path.reverse();
-					callback(path2route(path));
-					return true;
-				}
-			}
-		}
-		if ( newFront.length == 0 ){
-			callback([]);
-			return false;
-		}
-		oldFront = newFront;
-		newFront = [];
-		T++;
-	}
-}
-
-
-/**
 * поиск маршрута до любой из заданных баз с обходом полков неприятеля
 * волновым алгоритмом
 * @param from начальная точка вида {lat:lat,lng:lng,radius:radius}
@@ -946,6 +299,120 @@ function findRouteToBases(from, to, enemy, callback){
 		if ( newFront.length == 0 ){
 			callback(false);
 			return false;
+		}
+		oldFront = newFront;
+		newFront = [];
+		T++;
+	}
+}
+
+/**
+* обсчет позиций юнитов и вычисление полков находящихся в окружении 
+* @param regiments массив объектов полков вида [{lat:lat,lng:lng,radius:radius,id:id,country:country}, ...]
+* @param bases массив объектов баз вида [{lat:lat,lng:lng,radius:radius,id:id,country:country}, ...]
+* @param callback функция обратного вызова, в которую передается обратно  
+* результат расчета окружения полков в виде [{id:id, around:true}, {id:id, around:false},...]
+**/
+function around(regiments, bases, callback){
+    //console.log('regiments: '+JSON.stringify(regiments));
+    //console.log('bases: '+JSON.stringify(bases));
+    var result = [];
+    var item = null;
+    for (var i = 0; i < regiments.length; i++){
+        result.push({id:regiments[i].id, around:false});
+    }
+    var countries = getCountries(regiments, bases);
+    if ( countries.length < 2 ){
+        callback(result);
+        return;
+    }else{
+        startWave( 0, countries, regiments, bases, result, callback );
+    }  
+}
+
+/**
+* запуск волнового алгортма на графе дорожной сети с целью выявить доступность узлов
+* и расчет на основании этого факта окружения юнитов
+* @param countryIndex индекс в массиве id стран
+* @param countries массив стран
+* @param regiments массив объектов полков вида [{lat:lat,lng:lng,radius:radius,id:id,country:country}, ...]
+* @param bases массив объектов баз вида [{lat:lat,lng:lng,radius:radius,id:id,country:country}, ...]
+* @param callback функция обратного вызова, в которую передается обратно  
+* результат расчета окружения полков в виде [{id:id, around:true}, {id:id, around:false},...]
+**/
+function startWave( countryIndex, countries, regiments, bases, result, callback ){
+    if( countryIndex < 2 ){
+        waveClear();
+        var basesNodes = getUnitsNodes(getUnitsFromCountry(bases, countries[countryIndex]));
+        var countryIndexEnemy = ( countryIndex == 0 )? 1 : 0;
+        setNotAllow(getUnitsFromCountry(regiments, countries[countryIndexEnemy]));
+        wave(basesNodes.all, function(){
+            regimentsNodes = getUnitsNodes(getUnitsFromCountry(regiments, countries[countryIndex]));
+            for ( var k = 0; k < result.length; k++ ){
+                var oneRegimentNodes = regimentsNodes[result[k].id];
+                if ( oneRegimentNodes ){
+                    var regimentAround = true;
+                    for ( p = 0; p < oneRegimentNodes.length; p++ ){
+                        if ( nodes[oneRegimentNodes[p]-1].access ){
+                            regimentAround = false;
+                            break;
+                        } 
+                    }
+                    result[k].around = regimentAround;
+                }
+            }
+            countryIndex++;
+            startWave( countryIndex, countries, regiments, bases, result, callback );
+        });
+    }else{
+        callback(result);
+        return;
+    }  
+}
+
+/**
+* запуск волнового алгортма на графе дорожной сети с целью 
+* определения достижимости узлов из заданных узлов startNodes
+* @param startNodes массив id начальных узлов от которых будет запущен алгоритм
+* @param callback функция обратного вызова по окончании операции
+**/
+function wave(startNodes, callback){
+    var waveLabel = []; /**волновая метка**/
+	var T = 0;/**время**/
+	var oldFront = [];/**старый фронт**/
+	var newFront = [];/**новый фронт**/
+	var curr = null;
+	var id = null;
+	for ( var i = 0; i < n; i++ ){
+		waveLabel[i] = -1;
+	}
+	
+	for ( var i = 0; i < startNodes.length; i++ ){
+        waveLabel[startNodes[i]-1] = 0;
+        oldFront.push(startNodes[i]);
+        nodes[startNodes[i]-1].access = true;
+	}
+    
+	while (true){
+		//console.log(JSON.stringify(oldFront));
+		for ( var i = 0; i < oldFront.length; i++ ){
+			curr = oldFront[i];
+			//console.log('curr='+curr);
+			for ( j = index_from[curr-1]; j < index_from[curr-1] + index_size[curr-1]; j++ ){
+				id = roads[j].node_to;
+                if ( !nodes[id-1].allowed ) continue;
+				if ( waveLabel[id-1] == -1 ){
+					waveLabel[id-1] = T + 1;
+					newFront.push(id);
+					nodes[id-1].access = true;
+     
+				}
+			}
+		}
+		if ( newFront.length == 0 ){
+			/*распостранение волны закончено*/
+			callback();
+            return;
 		}
 		oldFront = newFront;
 		newFront = [];
@@ -1055,44 +522,6 @@ function distance(dot, node){
 	return (dot[0]-node.lat)*(dot[0]-node.lat) + (dot[1]-node.lng)*(dot[1]-node.lng);
 }
 
-/**
-* вывод всех дорог
-**/
-function getAllRoads(callback){
-	var allroads = [];
-	var geom = null;
-	for ( var i = 0; i < m; i++ ){
-		geom = JSON.parse(roads[i].geometry);
-		allroads.push(geom.coordinates);
-	}
-	callback(reverse2(allroads));
-}
-
-/**
-* вывод всех узлов
-**/
-function getAllNodes(callback){
-	var allnodes = [];
-	for ( var i = 0; i < n; i++ ){
-		allnodes.push([nodes[i].lat,nodes[i].lng]);
-	}
-	callback(allnodes);
-}
-
-/**
-* вывод всех запрещенных узлов
-**/
-function getRestirctedNodes(enemy, callback){
-	var restricted = [];
-	for ( var i = 0; i < enemy.length; i++ ){
-		for ( var j = 0; j < n; j++ ){
-			if ( rastGrad2([enemy[i].lat,enemy[i].lng],nodes[j]) <= enemy[i].radius ){
-				restricted.push([nodes[j].lat,nodes[j].lng]);
-			}
-		}
-	}
-	callback(restricted);
-}
 
 /**
 * получение всех запрещенных узлов
@@ -1139,20 +568,29 @@ function getTargetsNodesId(to){
 }
 
 /**
-* получение всех целевых узлов (включая точки в окрестности баз)
+* получение id узлов относящихса к юнитам
+* @param units массив объектов юнитов
+* @return объект содержащий массив id узлов графа, относящихся ко всем юнитам,
+* и массивы id узлов графа по каждому массиву отдельно
 **/
-function getTargetsNodesId2(to){
-	var targets = [];
-	for ( var i = 0; i < to.length; i++ ){
-		for ( var j = 0; j < n; j++ ){
-    		var rast = rastGrad2([to[i].lat,to[i].lng],nodes[j]);
-    		if (  rast <= to[i].radius ){
-    			targets.push(nodes[j].node_id);
-    		}
-    	}
-	}
-	return targets;
+function getUnitsNodes(units){
+	var ids = {all:[]};
+    for ( var j = 0; j < units.length; j++ ){
+        ids[units[j].id] = [];
+        for ( var i = 0; i < n; i++ ){
+            if ( rastGrad2([units[j].lat,units[j].lng], nodes[i]) <= units[j].radius ){
+                if ( ids.all.indexOf(i+1) == -1 ) ids.all.push(i+1);
+                ids[units[j].id].push(i+1);
+            }
+            if ( ids[units[j].id].length == 0 ){
+                ids[units[j].id].push(latlng2node_id([units[j].lat,units[j].lng]));
+            }
+        }
+    }
+	return ids;
 }
+
+
 
 /**
 * получение флага готовности
@@ -1225,7 +663,7 @@ function fillConnectedNodes(index, callback){
 		waveLabel[i] = -1;
 	}
 	var start = Math.floor(n/2+index);
-	console.log('findConnectedNodes2: start='+start);
+	console.log('fillConnectedNodes: start='+start);
 	waveLabel[start-1] = 0;
 	oldFront.push(start);
 	nodes[start-1].connected = true;
@@ -1263,23 +701,73 @@ function fillConnectedNodes(index, callback){
 }
 
 
+/**
+* разрешение всех узлов, сброс флага доступности
+**/
+function waveClear(){
+    for ( var i = 0; i < n; i++ ){
+        nodes[i].allowed = true;
+        nodes[i].access = false;
+    } 
+}
+
+/**
+* запрет узлов перекрытых юнитами
+**/
+function setNotAllow(units){
+    for ( var i = 0; i < n; i++ ){
+        for ( var j = 0; j < units.length; j++ ){
+            if ( rastGrad2([units[j].lat,units[j].lng], nodes[i]) <= units[j].radius ){
+                nodes[i].allowed = false;
+            }
+        }
+    }
+}
+
+/**
+* получение списка стран
+* @param regiments,bases массивы объектов полков и баз
+* @return countries массив id стран
+**/
+function getCountries(regiments,bases){
+    var countries = [];
+    var country = null;
+    for ( var i = 0; i < regiments.length; i++ ){
+        country = regiments[i].country;
+        if ( countries.indexOf(country) == -1 )
+            countries.push(country);
+    }
+    for ( var i = 0; i < bases.length; i++ ){
+        country = bases[i].country;
+        if ( countries.indexOf(country) == -1 )
+            countries.push(country);
+    }
+    return countries;
+}
+
+/**
+* получение массива юнитов, относящихся к заданной стране
+* units массив объектов юнитов
+* @param country
+* @return массив объектов юнитов относящихся к заданой стране 
+**/
+function getUnitsFromCountry(units, country){
+    var unitsFromCountry = [];
+    for ( var i = 0; i < units.length; i++ ){
+        if ( units[i].country == country ){
+            unitsFromCountry.push(units[i]);
+        }
+    }
+    return unitsFromCountry;
+}
+
+
 exports.init = init;
 exports.query = query;
 exports.loadNodes = loadNodes;
 exports.latlng2node_id = latlng2node_id;
-exports.routeDijkstra = routeDijkstra;
-exports.routeDijkstra2 = routeDijkstra2;
-exports.routeDijkstra3 = routeDijkstra3;
-exports.routeDijkstraEnemy = routeDijkstraEnemy;
-exports.routeDijkstraEnemy2 = routeDijkstraEnemy2;
 exports.getCost = getCost;
 exports.routeQuery = routeQuery;
-exports.getAllRoads = getAllRoads;
-exports.getAllNodes = getAllNodes;
-exports.getRestirctedNodes = getRestirctedNodes;
-exports.bypassingWide = bypassingWide;
-exports.bypassingWideEnemy = bypassingWideEnemy;
-exports.routeWave = routeWave;
-exports.routeWaveEnemy = routeWaveEnemy;
 exports.findRouteToBases = findRouteToBases;
 exports.getReady = getReady;
+exports.around = around;
