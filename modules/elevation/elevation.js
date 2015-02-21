@@ -2,7 +2,7 @@ var http = require('http');
 var ELEVATION_SERVICE_HOSTNAME = '127.0.0.1'; /*хост сервиса высот*/
 var ELEVATION_SERVICE_PORT = 8002; /*порт сервиса высот*/
 var delta = 0.01;
-var googleElevationService = require('./google.el.srv/el.srv');
+var googleElevationService = require('../google.el.srv/el.srv');
 var FAIL = -1000000;
 var service = 'sqlite';
 

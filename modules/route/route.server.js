@@ -3,9 +3,9 @@ var express = require('express');
 var app = express();
 var server = require('http').Server(app);
 var port = 8003;
-var osrm = require('./modules/osrm.route');
-var Helper = require('./modules/spatialite/helper');
-var time = require('./modules/spatialite/time');
+var osrm = require('./osrm.route');
+var Helper = require('../helper');
+var time = require('../time');
 var bodyParser = require('body-parser');
 
 server.listen(port,function(){

@@ -2,9 +2,9 @@ var express = require('express');
 var app = express();
 var server = require('http').Server(app);
 var port = 8002;
-var elevation= require('./modules/sqlite3.el.srv/elevation');
-var Helper = require('./modules/sqlite3.el.srv/helper');
-var time = require('./modules/sqlite3.el.srv/time');
+var elevation= require('./elevation.db');
+var Helper = require('../helper');
+var time = require('../time');
 var bodyParser = require('body-parser');
 
 server.listen(port, function(){

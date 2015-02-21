@@ -2,8 +2,8 @@
 var missions_file = 'missions'; /*файл миссий*/
 var mission_module = '../'+ global.sdata.getMissionsDir() + '/' + missions_file;
 var missions = require(mission_module).missions;
-var around = require('./around'); /*подключение модуля окружения*/
-var elevation = require('./elevation'); /*подключение модуля высот*/
+var around = require('./around/around'); /*подключение модуля окружения*/
+var elevation = require('./elevation/elevation'); /*подключение модуля высот*/
 
 
 /**

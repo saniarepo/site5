@@ -1,5 +1,4 @@
 /*модуль определения окружения полков*/
-var Debug = require('./debug');
 var http = require('http');
 var ROUTE_SERVICE_HOSTNAME = '127.0.0.1'; /*хост сервиса маршрутов*/
 var ROUTE_SERVICE_PORT = 8001; /*порт сервиса расчета окружения*/

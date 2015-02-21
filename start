@@ -1,2 +1,2 @@
 #! /bin/sh
-./game_server & ./around_server & ./elevation_server & ./route_server
+./game_server & modules/around/around_server & modules/elevation/elevation_server & modules/route/route_server

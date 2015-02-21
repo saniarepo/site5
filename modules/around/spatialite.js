@@ -1,7 +1,6 @@
 /*модуль маршрутов spatialite*/
 var sqlite = require('spatialite');
 var db = null; 
-var debug = require('./debug.js');
 var loaded_file = ''; /*имя файла загруженной базы данных*/ 
 var roads = []; /**массив дорог**/
 var nodes = [];/**массив узлов**/
@@ -176,7 +175,7 @@ function init(db_file, callback){
     loaded_file = db_file;
     clear();
     console.log('load graph...');
-    db = new sqlite.Database('modules/spatialite/' + DB_FOLDER + '/' + db_file);
+    db = new sqlite.Database('modules/around/' + DB_FOLDER + '/' + db_file);
     loadNodes(function(){
 		loadRoads(function(){
 			fillConnectedNodes(0, function(){
