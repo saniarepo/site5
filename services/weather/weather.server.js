@@ -1,16 +1,18 @@
 var express = require('express');
-var weather = require('./weather');
+var weather = require('./weather.db');
 var app = express();
 var server = require('http').Server(app);
 var port = 8004;
 var Helper = require('./helper');
 var time = require('./time');
+var bodyParser = require('body-parser');
+
 server.listen(port, function(){
 		console.log('Weather server start at port '+port+ ' ' + Helper.getTime());
 	});
 
 app.use(express.static(__dirname+'/public'));
-
+app.use(bodyParser.urlencoded({ extended: false }));
 
 /*маршрут для получения справки*/
 app.get('/',function(req,res){
@@ -34,10 +36,11 @@ app.get('/weather',function(req,res){
 
 
 /*маршрут для получения погоды в нескольких точках*/
-/*принимает запрос вида http://site1.loc:8080/weather/multi/?date=20140116&dots=56.12,47.67|58.17,49.11|54.13,48.32*/
-app.get('/weather/multi',function(req,res){
-	var date = req.query.date;
-	var dots = req.query.dots;
+/*принимает POST запрос вида http://site1.loc:8080/weather/multi/
+/* с параметрами date=20140116&dots=[[lat1,lng1],[lat2,lng2],...]*/
+app.post('/weather/multi',function(req,res){
+	var date = req.body.date;
+	var dots = JSON.parse(req.query.dots);
 	time.start();
 	weather.getWeatherMulti(date, dots, function(result){
 		console.log('Executing time: '+time.stop());

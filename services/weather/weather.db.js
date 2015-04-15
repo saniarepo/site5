@@ -1,7 +1,7 @@
 /**модуль получения погоды из базы**/
-var START_YEAR = 1990;
+var START_YEAR = 1994;
 var END_YEAR = 2014;
-var DB_DIR = 'modules/weather/db/';
+var DB_DIR = 'services/weather/db/';
 var BIG_NUM = 9999999999999999;
 
 var sqlite3 = require('sqlite3');
@@ -59,21 +59,24 @@ function getWeather(date, latitude, longitude, callback){
 			callback(RESULT_FAIL);
 			return;
 		}
-		var sql = 'SELECT * FROM meteo WHERE wban='+wban+' AND stn='+stn+' AND thedate='+date;
+		var sql = "SELECT * FROM meteo WHERE wban='"+wban+"' AND stn='"+stn+"' AND thedate='"+date+"'";
 		queryMeteo(year, sql, function(row){
 			if (row == null){
 				callback(RESULT_FAIL);
 				return;
 			}
-			var temperature = F2C(row.temperature);
-			var pressure = mb2atm(row.pressure);
-			var wind = node2ms(row.wind);
+			var temperature = F2C(parseFloat(row.temperature));
+			var pressure = mb2atm(parseFloat(row.pressure));
+			var wind = node2ms(parseFloat(row.wind));
 			var response = {};
 			response.result = true;
 			response.temperature = temperature;
 			response.pressure = pressure;
 			response.wind = wind;
 			response.rast = minRast;
+			response.visib = row.visib;
+			response.prcp = row.prcp;
+			response.frshht = row.frshht;
 			response.stn = stn;
 			response.wban = wban;
 			response.found_lat = foundLat;
@@ -97,13 +100,8 @@ function getWeatherMulti(date, dots, callback){
 		return;
 	}
 	date = parseInt(date);
-	var points = [];
-	var count = 0;
-	var dottext = dots.split('|');
-	for ( var i = 0; i < dottext.length; i++ ){
-		points.push([parseFloat(dottext[i].split(',')[0]), parseFloat(dottext[i].split(',')[1])]);
-	}
-	console.log(date > parseInt(''));
+	var points = dots;
+	
 	queryStations(function(rows){
 		if (rows == null){
 			callback(RESULT_FAIL);
@@ -145,10 +143,10 @@ function getWeatherMulti(date, dots, callback){
 			}			
 		}
 		
-		var sql = 'SELECT * FROM meteo WHERE thedate='+date+' AND (';
+		var sql = "SELECT * FROM meteo WHERE thedate='"+date+"' AND (";
 		for(var i = 0; i < points.length; i++){
 			if (!wban[i] || !stn[i]) continue;
-			sql += "(wban="+wban[i]+" AND stn="+stn[i]+")";
+			sql += "(wban='"+wban[i]+"' AND stn='"+stn[i]+"')";
 			if (i < points.length - 1) sql += ' OR ';
 		}
 		sql += ')';
@@ -163,9 +161,12 @@ function getWeatherMulti(date, dots, callback){
 			response.data = [];			
 			for ( var i = 0; i < rows.length; i++ ){
 				var item = {};
-				item.temperature = F2C(rows[i].temperature);
-				item.pressure = mb2atm(rows[i].pressure);
-				item.wind = node2ms(rows[i].wind);
+				item.temperature = F2C(parseFloat(rows[i].temperature));
+				item.pressure = mb2atm(parseFloat(rows[i].pressure));
+				item.wind = node2ms(parseFloat(rows[i].wind));
+				item.visib = parseFloat(rows[i].visib);
+				item.prcp = rows[i].prcp;
+				item.frshht = rows[i].frshht;
 				item.stn = rows[i].stn;
 				item.wban = rows[i].wban;
 				item.found_lat = stnCoords[rows[i].stn+'-'+rows[i].wban+'_lat'];

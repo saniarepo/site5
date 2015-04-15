@@ -1,4 +1,4 @@
-/*конструктор серверного объкта Game*/
+/*конструктор серверного объекта Game*/
 var Helper = require('./helper');
 var Battle = require('./battle');
 

@@ -19,6 +19,7 @@ function RegimentBase( latlng, id )
 	this.battle = false; /*флаг боя*/
     this.lastbattle = false; /*предыдущее значение флага боя*/
     this.enemyCount = 0; /*количество противников*/
+    this.weather = null; /*погодные данные*/
     this.status = 
     {
         kind: 'march', /*статус юнита; может быть march, attack, defense*/
@@ -254,6 +255,7 @@ function RegimentBase( latlng, id )
         regiment.lastelevation = this.lastelevation;
         regiment.battle = this.battle;
         regiment.status = this.status;
+        regiment.weather = this.weather;
         regiment.enemyCount = this.enemyCount; 
         return regiment;  
     };

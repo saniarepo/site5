@@ -102,7 +102,7 @@ function findNearest( dot, array ){
 
 /**
 * получение данных  через отправку HTTP POST запроса 
-* @param dots массив точек своих баз вида [[lat1,lng1],[lat2,lng2],...]
+* @param dots массив точек своих полков и баз вида [[lat1,lng1],[lat2,lng2],...]
 * @param callback функция обратного вызова, в которую передается результата в 
 * виде объекта массива объектов [{lat:lat,lng:lng,elevation:elevation}, ...]
 **/

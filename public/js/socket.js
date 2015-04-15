@@ -14,7 +14,7 @@ var LIVE_INTERVAL = 4000; /*интервал генерации события �
 var AROUND_TIMEOUT = 4000; /*интервал генерации событий запроса проверки окружения*/
 var hostname = window.location.hostname;
 var ELEVATION_TIMEOUT = 2000; /*интервал генерации событий запроса высотных данных*/
-
+var WEATHER_TIMEOUT = 300000; /*интервал генерации событий запроса погодных данных*/
 
 /**
 * обработчик события connect
@@ -134,7 +134,8 @@ function beginUserLive(){
         interval = setInterval( userLive, LIVE_INTERVAL );
     }
     //checkAround();
-    updateElevation(); 
+    updateElevation();
+    updateWeather();
 }
 
 /**
@@ -149,6 +150,13 @@ function checkAround(){
 **/
 function updateElevation(){
     socket.emit('update_elevation',{user:user.toString()});
+}
+
+/**
+* запрос на обновление погодных данных
+**/
+function updateWeather(){
+    socket.emit('update_weather',{user:user.toString()});
 }
 
 /**
@@ -269,6 +277,15 @@ socket.on('check_around_done',function(data){
 **/
 socket.on('update_elevation_done',function(data){
     setTimeout( updateElevation, ELEVATION_TIMEOUT );
+});
+
+/**
+* обработчик события от сервера об окончании цикла
+* обновления погодных данных
+* запуск следующего цикла обновления
+**/
+socket.on('update_weather_done',function(data){
+    setTimeout( updateWeather, WEATHER_TIMEOUT );
 });
 
 /**

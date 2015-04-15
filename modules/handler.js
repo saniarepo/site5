@@ -247,12 +247,35 @@ function check_around(socket,sdata){
 function update_elevation(socket,sdata){
     socket.on('update_elevation', function(data){
          if ( sdata.game == null ){
-            socket.emit('check_elevation_done');
+            socket.emit('update_elevation_done');
             return true;
         }
         if ( data.user.id == sdata.game.users[0].id ){
             elevation.updateElevation(sdata.game, function(){
                 socket.emit('update_elevation_done');
+            });
+        }
+    });
+}
+
+/**
+* обработчик события запроса клиента на запуск 
+* получения высотных данных для юнитов и обновление соответсвующего 
+* поля объектов полков в серверном объекте game 
+* генерация события check_around_done после окончания цикла проверки
+* @param socket объект socket.io
+* @param sdata разделяемый объект, содержащий объект game и массив объектов user 
+**/
+function update_weather(socket,sdata){
+    socket.on('update_weather', function(data){
+         if ( sdata.game == null ){
+            socket.emit('update_weather_done');
+            return true;
+        }
+        if ( data.user.id == sdata.game.users[0].id ){
+            var date = '20140116';//пока в целях отладки
+            weather.updateWeather(date, sdata.game, function(){
+                socket.emit('update_weather_done');
             });
         }
     });
@@ -343,4 +366,5 @@ exports.get_game = get_game;
 exports.user_live = user_live;
 exports.check_around = check_around;
 exports.update_elevation = update_elevation;
+exports.update_weather = update_weather;
 exports.get_game_message_client = get_game_message_client;

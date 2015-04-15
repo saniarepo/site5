@@ -19,6 +19,7 @@ function SupplyBase( latlng, id )
     this.battle = false; /*флаг боя*/
     this.lastbattle = false; /*предыдущее значение флага боя*/
     this.enemyCount = 0; /*количество противников*/
+    this.weather = null; /*погодные данные*/
     this.status = 
     {
         kind: 'defense', /*статус юнита; может быть march, defense*/
@@ -264,6 +265,7 @@ function SupplyBase( latlng, id )
         base.lastelevation = this.lastelevation;
         base.battle = this.battle;
         base.status = this.status;
+        base.weather = this.weather;
         base.enemyCount = this.enemyCount; 
         return base;  
     };
