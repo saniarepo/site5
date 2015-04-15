@@ -177,7 +177,8 @@ var translate =
     status: 'Состояние',
     attack: 'Атака',
     defense: 'Оборона',
-    march: 'Марш'  
+    march: 'Марш',
+    weather: 'Погода'  
 };
 
 /**

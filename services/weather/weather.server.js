@@ -40,7 +40,7 @@ app.get('/weather',function(req,res){
 /* с параметрами date=20140116&dots=[[lat1,lng1],[lat2,lng2],...]*/
 app.post('/weather/multi',function(req,res){
 	var date = req.body.date;
-	var dots = JSON.parse(req.query.dots);
+	var dots = JSON.parse(req.body.dots);
 	time.start();
 	weather.getWeatherMulti(date, dots, function(result){
 		console.log('Executing time: '+time.stop());

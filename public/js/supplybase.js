@@ -219,7 +219,8 @@ function SupplyBase( latlng, id )
                       elevation:  this.elevation,
                       around: this.around,
                       battle: this.battle,
-                      status: this.status.kind
+                      status: this.status.kind,
+                      weather: JSON.stringify(this.weather)
                   };
 		return info;
 	};

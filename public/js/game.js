@@ -308,7 +308,7 @@ function Game( user )
     * @return true/false
     **/
     this.isSyncParamFromServer = function(param){
-        var syncParams = ['around', 'elevation', 'battle' ];
+        var syncParams = ['around', 'elevation', 'battle', 'weather' ];
         return ( syncParams.indexOf(param) != -1 )? true : false;
     };
     
