@@ -1,11 +1,11 @@
 /*модуль для хранения серверных объектов game и user*/
 var Game = require('./game').Game; 
 var User = require('./user').User;
+var parameters = require('./parameters').parameters;
 
 var game = null; /*переменная для хранения серверного объекта game*/
 var users = []; /*массив для хранения объектов user*/
-var USER_MAX = 2; /*максимальное количество пользователей*/
-var MISSIONS_FOLDER = 'missions'; /*каталог с миссиями*/
+
 
 /**
 * добавление нового user в массив
@@ -13,7 +13,7 @@ var MISSIONS_FOLDER = 'missions'; /*каталог с миссиями*/
 * @return true или false
 **/
 function addUser(user){
-    if ( users.length >= USER_MAX ) return false;
+    if ( users.length >= parameters.USER_MAX ) return false;
     for ( var i = 0; i < users.length; i++ ){
         if ( users[i].id == user.id && users[i].name == user.name )
             return false;
@@ -50,17 +50,9 @@ function clearUsers(){
     }
 }
 
-/**
-* получение имени каталога с миссиями
-**/
-function getMissionsDir(){
-    return MISSIONS_FOLDER;
-}
-
 exports.game = game;
 exports.Game = Game;
 exports.User = User;
 exports.addUser = addUser;
 exports.getUserName = getUserName;
 exports.clearUsers = clearUsers;
-exports.getMissionsDir = getMissionsDir;

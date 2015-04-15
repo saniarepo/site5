@@ -1,9 +1,10 @@
 /*серверный модуль обработчиков событий при взаимодействии клиентов и сервера*/
-var missions_file = 'missions'; /*файл миссий*/
-var mission_module = '../'+ global.sdata.getMissionsDir() + '/' + missions_file;
-var missions = require(mission_module).missions;
-var around = require('./around/around'); /*подключение модуля окружения*/
-var elevation = require('./elevation/elevation'); /*подключение модуля высот*/
+var parameters = require('./parameters').parameters;
+var missions = require(parameters.missions_module).missions;
+var around = require(parameters.services.around); /*подключение модуля окружения*/
+var elevation = require(parameters.services.elevation); /*подключение модуля высот*/
+var weather = require(parameters.services.weather); /*подключение модуля погоды*/
+
 
 
 /**

@@ -238,7 +238,7 @@ function addExperience(unit, powerBattle){
 **/
 function rast(dot1,dot2){
 /**pi - число pi, rad - радиус сферы (Земли)**/
-    var rad = 6372795
+    var rad = 6372795;
 
 	/**координаты двух точек**/
 	var llat1 = dot1[0];
