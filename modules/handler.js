@@ -4,7 +4,7 @@ var missions = require(parameters.missions_module).missions;
 var around = require(parameters.services.around); /*подключение модуля окружения*/
 var elevation = require(parameters.services.elevation); /*подключение модуля высот*/
 var weather = require(parameters.services.weather); /*подключение модуля погоды*/
-
+var Helper = require('./helper');
 
 
 /**
@@ -273,7 +273,8 @@ function update_weather(socket,sdata){
             return true;
         }
         if ( data.user.id == sdata.game.users[0].id ){
-            var date = '20140116';//пока в целях отладки
+            var date = Helper.getDate(2);
+            console.log('date='+date);
             weather.updateWeather(date, sdata.game, function(){
                 socket.emit('update_weather_done');
             });

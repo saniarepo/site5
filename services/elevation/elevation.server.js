@@ -30,9 +30,9 @@ app.post('/elevation',function(req,res){
 app.post('/elevations',function(req,res){
 	var data = JSON.parse(req.body.data);
 	//console.log(data);
-    //time.start();
+    time.start();
 	elevation.getElevations(data, function(result){
-		//console.log('Executing time: '+time.stop());
+		console.log('Elevation Executing time: '+time.stop());
 		res.writeHead(200, {"Content-Type": "text/html","Access-Control-Allow-Origin": "*"});
 		//console.log('el:'+JSON.stringify(result));
         res.write(JSON.stringify(result));

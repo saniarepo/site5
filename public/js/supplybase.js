@@ -220,7 +220,7 @@ function SupplyBase( latlng, id )
                       around: this.around,
                       battle: this.battle,
                       status: this.status.kind,
-                      weather: JSON.stringify(this.weather)
+                      weather: this.weather
                   };
 		return info;
 	};

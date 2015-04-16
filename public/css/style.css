@@ -28,6 +28,8 @@ body
         
     }
     
+    
+    
      .title h3
     {
         font-size: 0.8em;
@@ -48,6 +50,8 @@ body
         
     }
     
+   
+    
      .title h3
     {
         font-size: 0.9em;
@@ -66,6 +70,8 @@ body
     	width: 640px; 
         
     }
+    
+   
     
      .title h3
     {
@@ -86,6 +92,8 @@ body
         
     }
     
+    
+    
      .title h3
     {
         font-size: 1.1em;
@@ -105,6 +113,8 @@ body
         
     }
     
+    
+    
      .title h3
     {
         font-size: 1.2em;
@@ -122,6 +132,8 @@ body
     {
     	width: 1020px; 
     }
+    
+    
     
      .title h3
     {
@@ -142,6 +154,8 @@ body
     	width: 1240px; 
         
     }
+    
+    
     
      .title h3
     {
@@ -307,6 +321,14 @@ body
     padding-bottom: 10px; 
 }
 
+.weather-block
+{
+    bottom: 400px;
+    left: 20px;
+    height: 20%;
+    padding-bottom: 10px; 
+}
+
 .info-block
 {
     top: 10%;
@@ -335,6 +357,7 @@ body
     text-align: left;
     
 }
+
 
 .info-message
 {
@@ -519,5 +542,19 @@ hr
     color: #333;
     border-radius: 10px;
     margin: 0 0 0 10px;
+}
+
+.weather-info
+{
+    display: none;
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    height: 30px;
+    width: 100%;
+    background-color: #eee;
+    opacity: 0.6;
+    text-align: center;
+    padding-top: 20px;
 }
  

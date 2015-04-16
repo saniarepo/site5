@@ -26,7 +26,7 @@ app.get('/routeosrm',function(req,res){
 	var waypoints = [];
 	time.start();
 	osrm.getRoute(source, target, waypoints, function(route){
-		console.log('Executing time: '+time.stop());
+		console.log('Route OSRM Executing time: '+time.stop());
 		res.writeHead(200, {"Content-Type": "text/html","Access-Control-Allow-Origin": "*"});
         res.write(JSON.stringify(route));
 		res.end();	
@@ -42,7 +42,7 @@ app.get('/routespatialite',function(req,res){
     var from = {lat:source[0],lng:source[1]};
 	time.start();
 	spatialite.routeQuery(from, target, function(route){
-		console.log('Executing time: '+time.stop());
+		console.log('Route Spatialite Executing time: '+time.stop());
 		res.writeHead(200, {"Content-Type": "text/html","Access-Control-Allow-Origin": "*"});
 		res.write(JSON.stringify(route));
 		res.end();

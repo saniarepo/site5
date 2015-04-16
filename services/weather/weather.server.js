@@ -27,7 +27,7 @@ app.get('/weather',function(req,res){
 	var lng = req.query.lng;
 	time.start();
 	weather.getWeather(date, lat, lng, function(result){
-		console.log('Executing time: '+time.stop());
+		console.log('Weather Executing time: '+time.stop());
 		res.writeHead(200, {"Content-Type": "text/html","Access-Control-Allow-Origin": "*"});
 		res.write(JSON.stringify(result));
 		res.end();	
@@ -43,7 +43,7 @@ app.post('/weather/multi',function(req,res){
 	var dots = JSON.parse(req.body.dots);
 	time.start();
 	weather.getWeatherMulti(date, dots, function(result){
-		console.log('Executing time: '+time.stop());
+		console.log('Weather Executing time: '+time.stop());
 		res.writeHead(200, {"Content-Type": "text/html","Access-Control-Allow-Origin": "*"});
 		res.write(JSON.stringify(result));
 		res.end();	

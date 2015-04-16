@@ -231,6 +231,7 @@ function Game()
             if ( this.users[i].name == user.name && this.users[i].id == user.id ){
                 var now = new Date();
                 this.users[i].lastTime = now.getTime();
+                console.log('name='+this.users[i].name+'; time='+now.getTime());
             }
         }
     };

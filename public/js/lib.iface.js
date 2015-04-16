@@ -255,3 +255,30 @@ function showControlBlocks(){
         }
 }
 
+/**
+* возвращает html представление для погодных данных
+* @param weather объект содержащий погодные данные
+* @return html код для отображения в панели погодных данных
+**/
+function formatWeatherData(weather){
+    if (weather == null) return '';
+    var content = '<div class="weather-line">';
+    content += 'Температура (С): ' + weather.temperature.toFixed(1);
+    content += '; Скорость ветра (м/с): ';
+    content += (weather.wind != null)? weather.wind.toFixed(1): 'н/д';
+    content += '; Давление (мм. рт. ст.): ';
+    content += (weather.pressure != null)? 760 * weather.pressure.toFixed(1):'н/д';
+    content += '; Видимость (м): ';
+    content += (weather.visib != '999.9')? parseFloat(weather.visib) * 1609 : 'н/д';
+    content += '; Осадков за день(см): ';
+    content += (weather.prcp != '99.99')? (parseFloat(weather.prcp.slice(0,4))*2.54).toFixed(1) : 0;
+    content += (weather.frshht.slice(0,1) == '1')? ' Туман ' : '';
+    content += (weather.frshht.slice(1,2) == '1')? ' Дождь ' : '';
+    content += (weather.frshht.slice(2,3) == '1')? ' Снег ' : '';
+    content += (weather.frshht.slice(3,4) == '1')? ' Град ' : '';
+    content += (weather.frshht.slice(4,5) == '1')? ' Гроза ' : '';
+    content += (weather.frshht.slice(5,6) == '1')? ' Торнадо ' : '';
+    content += '</div>';
+    return content;
+}
+

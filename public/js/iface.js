@@ -21,6 +21,7 @@ var iface =
     log_div: document.getElementById('log-message'),
     info_div: document.getElementById('info-message'),
     unitinfo_div: document.getElementById('unit-info'),
+    weatherinfo_div: document.getElementById('weather-info'),
     gameover_div: document.getElementById('game-over'),
     label_next: document.getElementById('label-next'),
     preloader: document.getElementById('preloader'),
@@ -65,6 +66,7 @@ var iface =
     showUnit: function(unit){
         var ul = document.createElement('ul');
         for ( var item in unit ){
+            if ( item == 'weather' ) continue;
             var li = document.createElement('li');
             var value = unit[item];
             if ( typeof(value) == 'boolean' && value == false ) value = 'Нет';
@@ -76,6 +78,9 @@ var iface =
             ul.appendChild(li);
         }
         destroyChildren(this.unitinfo_div);
+        destroyChildren(this.weatherinfo_div);
+        this.weatherinfo_div.style.display = 'block';
+        this.weatherinfo_div.innerHTML = formatWeatherData(unit.weather);
         this.unitinfo_div.style.display = 'block';
         this.unitinfo_div.appendChild(ul);
     },
@@ -87,6 +92,8 @@ var iface =
         
         destroyChildren(this.unitinfo_div);
         this.unitinfo_div.style.display = 'none';
+        destroyChildren(this.weatherinfo_div);
+        this.weatherinfo_div.style.display = 'none';
     },
     
     /**
