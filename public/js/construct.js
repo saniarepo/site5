@@ -89,6 +89,7 @@ function save(){
     desc[country2] = document.getElementById('desc2').value;
     desc['all'] = document.getElementById('desc').value;
     var db_file = document.getElementById('db_file').value;
+    var year = document.getElementById('mission_year').value;
     var name = document.getElementById('mission_name').value;
     var center = calcCenter(units);
     var mission = {
@@ -98,6 +99,7 @@ function save(){
         bases: getBasesArray(units),
         desc: desc,
         center: center,
+        year: year,
         db_file: db_file
     };
     missions.push(mission);

@@ -1,4 +1,5 @@
 var http = require('http');
+var Helper = require('./helper');;
 var WEATHER_SERVICE_HOSTNAME = '127.0.0.1'; /*хост сервиса погоды*/
 var WEATHER_SERVICE_PORT = 8004; /*порт сервиса погоды*/
 var FAIL = -1000000;
@@ -10,8 +11,10 @@ var FAIL = -1000000;
 * @param game объект игры
 * @callback функция обратного вызова, вызываемая по завершении операции
 **/
-function updateWeather(date, game, callback){
+function updateWeather(game, callback){
     var dots = prepareDots(game);
+    var date = Helper.getDate(game.mission.year);
+    console.log('date='+date);
     getWeather(date, dots, function(result){
         updateGameObject(game, result, callback);
     }); 

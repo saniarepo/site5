@@ -20,6 +20,7 @@ var Mission1 =
                     {latlng: [56.69,47.72], country: 'ukraine', type: 'none' }
                 ],
     id: 'mission1',
+    year: 2013,
     desc: {    
                 russia: 'Описание миссии для России', 
                 ukraine: 'Описание миссии для Украины', 
@@ -50,6 +51,7 @@ var Mission2 =
                     {latlng: [56.69,47.72], country: 'germany', type: 'none' }
                 ],
     id: 'mission2',
+    year: 2012,
     desc: {    
                 russia: 'Описание миссии для России', 
                 germany: 'Описание миссии для Германии', 
@@ -79,6 +81,7 @@ var Mission3 =
                     {latlng: [56.69,47.72], country: 'ukraine', type: 'none' }
                 ],
     id: 'mission3',
+    year: 2011,
     desc: {    
                 us: 'Описание миссии для США', 
                 ukraine: 'Описание миссии для Украины', 

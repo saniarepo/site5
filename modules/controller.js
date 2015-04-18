@@ -2,7 +2,8 @@
 * модуль обработки http запросов к серверу
 **/
 var fs = require('fs');
-
+var parameters = require('./parameters').parameters;
+var MISSIONS_DIR = 'missions/';
 
 /**
 * обработчик GET запроса на '/' (сама игра)
@@ -47,7 +48,7 @@ function construct(req,res){
 
 /*обработчик запроса на /makemissions (создание файла миссий)*/
 function makemissions(req,res){
-    var file = global.sdata.getMissionsDir() + '/' + req.body.file;
+    var file = MISSIONS_DIR + req.body.file;
     var data = JSON.parse(req.body.data);
     var countries = JSON.parse(req.body.countries);
     var content = makeMissionsContent(data, countries);
