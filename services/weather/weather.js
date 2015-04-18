@@ -3,6 +3,8 @@ var Helper = require('./helper');;
 var WEATHER_SERVICE_HOSTNAME = '127.0.0.1'; /*хост сервиса погоды*/
 var WEATHER_SERVICE_PORT = 8004; /*порт сервиса погоды*/
 var FAIL = -1000000;
+var date = null;
+var unitsPositionsHash = 0; /*хеш позиций юнитов*/
 
 /**
 * получение погодных данных
@@ -12,13 +14,38 @@ var FAIL = -1000000;
 * @callback функция обратного вызова, вызываемая по завершении операции
 **/
 function updateWeather(game, callback){
+    /*проверяем было ли изменение положения юнитов*/
+    var currDate = Helper.getDate(game.mission.year);
+    console.log('date='+currDate);
+    var hash = calcUnitsPositionsHash(game);
+    if ( unitsPositionsHash == hash && currDate == date){
+        callback();
+        return;
+    }
+    unitsPositionsHash = hash;
+    date = currDate;
     var dots = prepareDots(game);
-    var date = Helper.getDate(game.mission.year);
-    console.log('date='+date);
     getWeather(date, dots, function(result){
         updateGameObject(game, result, callback);
     }); 
     
+}
+
+/**
+* получение хеша из позиций юнитов с целью определения 
+* было ли движение юнитов или нет
+* @param game объект игры
+* @return hash хеш от положений юнитов
+**/
+function calcUnitsPositionsHash(game){
+    var hash = 0;
+    for (var i = 0; i < game.regiments.length; i++){
+        hash += game.regiments[i].latlng[0] + game.regiments[i].latlng[1];
+    }
+    for (var i = 0; i < game.bases.length; i++){
+        hash += game.bases[i].latlng[0] + game.bases[i].latlng[1];
+    }
+    return hash;
 }
 
 /**
