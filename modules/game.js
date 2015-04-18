@@ -230,8 +230,9 @@ function Game()
         for ( var i = 0; i < this.users.length; i++ ){
             if ( this.users[i].name == user.name && this.users[i].id == user.id ){
                 var now = new Date();
+                //console.log('name='+this.users[i].name+'; last='+this.users[i].lastTime+'; now='+now.getTime()+ '; deltatime='+(now.getTime()-this.users[i].lastTime));
                 this.users[i].lastTime = now.getTime();
-                console.log('name='+this.users[i].name+'; time='+now.getTime());
+                
             }
         }
     };
@@ -245,7 +246,7 @@ function Game()
         var now = new Date();
         var nowTime = now.getTime();
         for ( var i = 0; i < this.users.length; i++ ){
-            if ( ( nowTime - this.users[i].lastTime ) > this.MAX_LIVE_TIMEOUT ) return false;
+            if ( (( nowTime - this.users[i].lastTime ) > this.MAX_LIVE_TIMEOUT) && (( nowTime - this.users[i].lastTime ) < this.MAX_LIVE_TIMEOUT * 10) ) return false;
         }
         return true;
     };

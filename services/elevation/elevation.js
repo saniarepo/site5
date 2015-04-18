@@ -5,6 +5,7 @@ var delta = 0.01;
 var googleElevationService = require('../google.el.srv/el.srv');
 var FAIL = -1000000;
 var service = 'sqlite';
+var unitsPositionsHash = 0; /*хеш позиций юнитов*/
 
 /**
 * получение высот точек от севиса высотных данных
@@ -14,6 +15,14 @@ var service = 'sqlite';
 * @callback функция обратного вызова, вызываемая по завершении операции
 **/
 function updateElevation(game, callback){
+     /*проверяем было ли изменение положения юнитов*/
+    var hash = calcUnitsPositionsHash(game);
+    if ( unitsPositionsHash == hash ){
+        callback();
+        return;
+    }
+    unitsPositionsHash = hash;
+    
     var dots = prepareDots(game);
     if ( service == 'google' ){
         googleElevationService.getElevations(dots, function(result){
@@ -24,6 +33,23 @@ function updateElevation(game, callback){
             updateGameObject(game, result, callback);
         }); 
     }
+}
+
+/**
+* получение хеша из позиций юнитов с целью определения 
+* было ли движение юнитов или нет
+* @param game объект игры
+* @return hash хеш от положений юнитов
+**/
+function calcUnitsPositionsHash(game){
+    var hash = 0;
+    for (var i = 0; i < game.regiments.length; i++){
+        hash += game.regiments[i].latlng[0] + game.regiments[i].latlng[1];
+    }
+    for (var i = 0; i < game.bases.length; i++){
+        hash += game.bases[i].latlng[0] + game.bases[i].latlng[1];
+    }
+    return hash;
 }
 
 /**

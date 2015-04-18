@@ -201,6 +201,7 @@ function user_live( socket, sdata ){
             //console.log(JSON.stringify(sdata.game.users));
             if ( !sdata.game.isUsersLive() ){
                 sdata.game.addLogMessage('client was lost');
+                console.log('client was lost');
                 sendLogMessages(socket, sdata);
                 sdata.game.exit(function(){
                     sdata.game = null;
@@ -274,6 +275,7 @@ function update_weather(socket,sdata){
         }
         if ( data.user.id == sdata.game.users[0].id ){
             var date = Helper.getDate(2);
+            //date = '20140116';
             console.log('date='+date);
             weather.updateWeather(date, sdata.game, function(){
                 socket.emit('update_weather_done');
@@ -354,6 +356,7 @@ function get_game_message_client(socket, sdata){
         sendGameMessages(socket, sdata);
     });
 }
+
 
 exports.game_init_client = game_init_client;
 exports.game_clone_client = game_clone_client;

@@ -261,23 +261,35 @@ function showControlBlocks(){
 * @return html код для отображения в панели погодных данных
 **/
 function formatWeatherData(weather){
-    if (weather == null) return '';
-    var content = '<div class="weather-line">';
+    if (weather == null)return '';
+    
+    var content = '<div class="weather-img">';
+    content += (weather.frshht.slice(0,6) == '000000')? '<img class="weather-icon" src="img/weather/sun.png"/>' : '';
+    content += (weather.frshht.slice(0,1) == '1')? '<img class="weather-icon" src="img/weather/Fog.png"/>' : '';
+    content += (weather.frshht.slice(1,2) == '1')? '<img class="weather-icon" src="img/weather/Rain.png"/>' : '';
+    content += (weather.frshht.slice(2,3) == '1')? '<img class="weather-icon" src="img/weather/Snow.png"/>' : '';
+    content += (weather.frshht.slice(3,4) == '1')? '<img class="weather-icon" src="img/weather/Hail.png"/>' : '';
+    content += (weather.frshht.slice(4,5) == '1')? '<img class="weather-icon" src="img/weather/Thunder.png"/>' : '';
+    content += (weather.frshht.slice(5,6) == '1')? '<img class="weather-icon" src="img/weather/Tornado.png"/>' : '';
+    content += '</div>';
+    
+    content += '<div class="weather-line">';
+    content += (weather.frshht.slice(0,1) == '1')? ' Туман ' : '';
+    content += (weather.frshht.slice(1,2) == '1')? ' Дождь  ' : '';
+    content += (weather.frshht.slice(2,3) == '1')? ' Снег ' : '';
+    content += (weather.frshht.slice(3,4) == '1')? ' Град ' : '';
+    content += (weather.frshht.slice(4,5) == '1')? ' Гроза ' : '';
+    content += (weather.frshht.slice(5,6) == '1')? ' Торнадо ' : '';
     content += 'Температура (С): ' + weather.temperature.toFixed(1);
     content += '; Скорость ветра (м/с): ';
     content += (weather.wind != null)? weather.wind.toFixed(1): 'н/д';
     content += '; Давление (мм. рт. ст.): ';
     content += (weather.pressure != null)? 760 * weather.pressure.toFixed(1):'н/д';
     content += '; Видимость (м): ';
-    content += (weather.visib != '999.9')? parseFloat(weather.visib) * 1609 : 'н/д';
+    content += (weather.visib != '999.9')? (parseFloat(weather.visib) * 1609).toFixed(1) : 'н/д';
     content += '; Осадков за день(см): ';
     content += (weather.prcp != '99.99')? (parseFloat(weather.prcp.slice(0,4))*2.54).toFixed(1) : 0;
-    content += (weather.frshht.slice(0,1) == '1')? ' Туман ' : '';
-    content += (weather.frshht.slice(1,2) == '1')? ' Дождь ' : '';
-    content += (weather.frshht.slice(2,3) == '1')? ' Снег ' : '';
-    content += (weather.frshht.slice(3,4) == '1')? ' Град ' : '';
-    content += (weather.frshht.slice(4,5) == '1')? ' Гроза ' : '';
-    content += (weather.frshht.slice(5,6) == '1')? ' Торнадо ' : '';
+    
     content += '</div>';
     return content;
 }

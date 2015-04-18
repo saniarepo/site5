@@ -52,5 +52,5 @@ io.on('connection',function(socket){
     Handler.check_around(socket, sdata);
     Handler.update_elevation(socket, sdata);
     Handler.update_weather(socket, sdata);
-    Handler.get_game_message_client(socket, sdata);    
+    Handler.get_game_message_client(socket, sdata);   
 });

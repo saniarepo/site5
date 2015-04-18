@@ -122,21 +122,24 @@ function restoreGame(){
 * и генерация события user_live
 * с посылкой данных объекта user
 **/
+
 function userLive(){
     socket.emit('user_live',{user:user.toString()});
 }
 
+
 /**
 * начало активности клиента
 **/
+
 function beginUserLive(){
     if ( interval == null ){
         interval = setInterval( userLive, LIVE_INTERVAL );
     }
-    //checkAround();
     updateElevation();
     updateWeather();
 }
+
 
 /**
 * запрос на проверку окружения полков

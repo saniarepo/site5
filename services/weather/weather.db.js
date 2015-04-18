@@ -150,7 +150,7 @@ function getWeatherMulti(date, dots, callback){
 			if (i < points.length - 1) sql += ' OR ';
 		}
 		sql += ')';
-		console.log(sql);
+		//console.log(sql);
 		queryMeteoMulti(year, sql, function(rows){
 			if (rows == null){
 				callback(RESULT_FAIL);

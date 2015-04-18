@@ -214,7 +214,12 @@ function resourcesInGo(unit){
 **/
 function resourcesOutGo(unit){
     if ( unit.type.resources.food > 0 ){
-        unit.type.resources.food -= unit.type.cycle.foodOutGo;
+        var weatherCoff = 1;
+        /*учет погодных условий*/
+        if (unit.weather && unit.weather.temperature < -10 ){
+            weatherCoff *= 1.5;
+        }
+        unit.type.resources.food -= unit.type.cycle.foodOutGo * weatherCoff;
         unit.type.resources.food = (unit.type.resources.food >= 0)? unit.type.resources.food : 0;
     }
 };
