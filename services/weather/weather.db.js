@@ -90,7 +90,7 @@ function getWeather(date, latitude, longitude, callback){
 * получение погодных данных в наборе точек с 
 * заданными координатами на заданную дату
 * @param date дата в виде ггггммдд
-* @param dots набор точек, заданный в форме: lat1,lng1|lat2,lng2|lat3,lng3
+* @param dots набор точек, заданный в форме: [[lat1,lng1],[lat2,lng2],...]
 * @param callback функция обратного вызова в которую передается результат в виде объекта
 **/
 function getWeatherMulti(date, dots, callback){
