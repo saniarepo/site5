@@ -183,6 +183,7 @@ socket.on('send_game', function(data){
         game.restore(remoteGame, beginUserLive);
         user.gameId = remoteGame.id;
    }
+   map.setView(game.mission.center,13);
 }); 
 
 /**
