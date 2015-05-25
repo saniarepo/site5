@@ -97,7 +97,7 @@ function SupplyBase( latlng, id )
     /**
     * возвращает величину DELTA - смещение юнита за один такт (от этого зависит скорость)
     **/
-    this.getDelta = function(){
+    this.getVelocity = function(){
         /*зависимость скорости от рельефа*/
         var k = 0.1;
         if ( this.elevation == 0 || this.lastelevation == 0 ){
@@ -107,8 +107,8 @@ function SupplyBase( latlng, id )
         }
         
         /*понижение скорости в атаке*/
-        var delta = ( this.status.kind == 'attack' )? this.status.speed_coff * this.type.DELTA : this.type.DELTA;
-        return delta * elevationCoff;
+        var coff = ( this.status.kind == 'attack' )? this.status.speed_coff : 1;
+        return this.type.VELOCITY * elevationCoff * coff;
     };
     
     /**

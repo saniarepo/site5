@@ -103,7 +103,85 @@ var Helper =
             if ( game.users[i].id == user_id ) return true;
         }
         return false;
+    },
+    
+    /**
+    * вычисление расстояния на сфере
+    * @param do1,dot2 точки, заданные массивами кооординат [lat,lng]
+    **/
+    rast: function(dot1,dot2){
+    /**pi - число pi, rad - радиус сферы (Земли)**/
+        var rad = 6372795;
+    
+    	/**координаты двух точек**/
+    	var llat1 = dot1[0];
+    	var llong1 = dot1[1];
+    
+    	var llat2 = dot2[0];
+    	var llong2 = dot2[1];
+    
+    	/**в радианах**/
+    	var lat1 = llat1*Math.PI/180;
+    	var lat2 = llat2*Math.PI/180;
+    	var long1 = llong1*Math.PI/180;
+    	var long2 = llong2*Math.PI/180;
+    
+    	/**косинусы и синусы широт и разницы долгот**/
+    	var cl1 = Math.cos(lat1)
+    	var cl2 = Math.cos(lat2)
+    	var sl1 = Math.sin(lat1)
+    	var sl2 = Math.sin(lat2)
+    	var delta = long2 - long1
+    	var cdelta = Math.cos(delta)
+    	var sdelta = Math.sin(delta)
+    
+    	/**вычисления длины большого круга**/
+    	var y = Math.sqrt(Math.pow(cl2*sdelta,2)+Math.pow(cl1*sl2-sl1*cl2*cdelta,2))
+    	var x = sl1*sl2+cl1*cl2*cdelta
+    	var ad = Math.atan2(y,x)
+    	var dist = ad*rad
+    	return dist;
+    },
+
+    /**
+    * вычисление расстояния на сфере  в градусах
+    * @param do1,dot2 точки, заданные массивами кооординат [lat,lng]
+    **/
+    rastGrad: function(dot1,dot2){
+    /**pi - число pi, rad - радиус сферы (Земли)**/
+        var rad = 6372795
+    
+    	/**координаты двух точек**/
+    	var llat1 = dot1[0];
+    	var llong1 = dot1[1];
+    
+    	var llat2 = dot2[0];
+    	var llong2 = dot2[1];
+    
+    	/**в радианах**/
+    	var lat1 = llat1*Math.PI/180;
+    	var lat2 = llat2*Math.PI/180;
+    	var long1 = llong1*Math.PI/180;
+    	var long2 = llong2*Math.PI/180;
+    
+    	/**косинусы и синусы широт и разницы долгот**/
+    	var cl1 = Math.cos(lat1)
+    	var cl2 = Math.cos(lat2)
+    	var sl1 = Math.sin(lat1)
+    	var sl2 = Math.sin(lat2)
+    	var delta = long2 - long1
+    	var cdelta = Math.cos(delta)
+    	var sdelta = Math.sin(delta)
+    
+    	/**вычисления длины большого круга**/
+    	var y = Math.sqrt(Math.pow(cl2*sdelta,2)+Math.pow(cl1*sl2-sl1*cl2*cdelta,2))
+    	var x = sl1*sl2+cl1*cl2*cdelta
+    	var ad = Math.atan2(y,x)
+    	var dist = ad*180/Math.PI;
+    	return dist;
     } 
     
 }
+
+
 

@@ -39,10 +39,16 @@ var Route =
 		Route.directionsService.route(request, function(response, status) {
 			if (status == google.maps.DirectionsStatus.OK) {
 				var points = response.routes[0].overview_path;
+                var liters = [];
+                for ( var key in points[0]){
+                    liters.push(key);
+                    if (liters.length >1 ) break;  
+                }
                 var route = [];
     			for ( var i = 0; i < points.length; i++ ){
-    				route.push([points[i]['k'],points[i]['D']]);
+    				route.push([points[i][liters[0]],points[i][liters[1]]]);
     			}
+                //console.log(JSON.stringify(route));
                 callback(route);
 			}
 		});

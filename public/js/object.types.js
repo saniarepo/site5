@@ -6,8 +6,7 @@ function Tank()
 {
 	this.name =	'Танковый полк'; /*наименование*/
 	this.id = 'tank';            /*идентификатор*/
-    this.DELTA = 0.0002;         /*точность следования по маршруту - шаг перемещения за 1 такт в градусах*/
-	this.DELTA_TIME = 100;       /*параметр определяющий скорость движения - длительность такта анимации с мс*/
+    this.VELOCITY = 40;         /*скорость движения юнита в км/ч*/
     this.radius = 0.01;          /*радиус области действия полка*/
 	this.power = 50;              /*боевая мощь*/
     this.cycle = 
@@ -43,8 +42,7 @@ function Foot()
 {
 	this.name =	'Мотострелковый полк';
 	this.id = 'foot';
-    this.DELTA = 0.0002;
-	this.DELTA_TIME = 100;
+    this.VELOCITY = 40;
 	this.radius = 0.01;
     this.power = 30;              /*боевая мощь*/
     this.cycle = 
@@ -78,8 +76,7 @@ function Base()
 {
 	this.name =	'База снабжения';
 	this.id = 'none';
-    this.DELTA = 0.0002;
-	this.DELTA_TIME = 100;
+    this.VELOCITY = 20;
 	this.radius = 0.01;
     this.power = 10;              /*боевая мощь*/
 	this.cycle = 
