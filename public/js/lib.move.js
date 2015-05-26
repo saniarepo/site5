@@ -61,6 +61,7 @@ var Move =
 			
     /**
     * перемещение маркера в заданную точку по прямой с анимацией
+    * с учетом сферичности используя решение прямой о обратной геодезических задач 
     * @param latlng точка назначения в виде оъекта {lat:lat,lng:lng} 
     * @param regiment объект юнита (полка)
     * @param callback функция обратного вызова вызываемая после завершения движения 
@@ -70,20 +71,56 @@ var Move =
 		regiment.MOVE = true;
 		var start = regiment.marker.type.getLatLng();
 		var end = latlng;
-        var k = Move.DELTA_TIME / 399600000; /*коэф. для перевода км/м в градусы*/
+		var ogz = Helper.ogz([start.lat,start.lng], [end.lat, end.lng]);
+		var pos = L.latLng( start.lat, start.lng );
+        var newpos = null;
+		var interval = setInterval( function(){   
+            console.log(pos);
+            var rastTact = Move.DELTA_TIME * TIME_SCALE /3600 * regiment.getVelocity();
+            console.log(rastTact);
+            if ( (Helper.rast([pos.lat,pos.lng],[end.lat,end.lng]) >= rastTact) && Move.ENABLED && !regiment.STOP )
+			{
+                if ( !Move.PAUSE ){
+                    for ( marker in regiment.marker ) regiment.marker[marker].setLatLng( pos );
+                    newpos = Helper.pgz([pos.lat,pos.lng], rastTact, ogz.azimut);
+                    pos = L.latLng( newpos[0], newpos[1] );
+				}               
+			}
+			else
+			{
+				clearInterval( interval );
+				regiment.MOVE = false;
+				callback();
+			}
+		
+		}, Move.DELTA_TIME );
+	},//end func
+    
+    /**
+    * перемещение маркера в заданную точку по прямой с анимацией
+    * @param latlng точка назначения в виде оъекта {lat:lat,lng:lng} 
+    * @param regiment объект юнита (полка)
+    * @param callback функция обратного вызова вызываемая после завершения движения 
+    **/
+	moveMarkerLineAnimation_Old:	function ( latlng, regiment, callback ){
+        if ( regiment.MOVE ) return false;
+		regiment.MOVE = true;
+		var start = regiment.marker.type.getLatLng();
+		var end = latlng;
+        var k = Move.DELTA_TIME / 399600000 * TIME_SCALE; /*коэф. для перевода км/м в градусы*/
 		var R = Math.sqrt((start.lat - end.lat)*(start.lat - end.lat) + (start.lng - end.lng)*(start.lng - end.lng));
-		var deltaLat = ( end.lat - start.lat ) / R * regiment.getVelocity() * k;
+        var deltaLat = ( end.lat - start.lat ) / R * regiment.getVelocity() * k;
 		var deltaLng = ( end.lng - start.lng ) / R * regiment.getVelocity() * k;
 		var i = 0;
 		var pos = L.latLng( start.lat, start.lng );
 		var interval = setInterval( function(){
-            
+        var ogz = Helper.ogz([start.lat,start.lng],[end.lat,end.lng]);
+        console.log('r='+ogz.dist+' ;az='+ogz.azimut);    
             if ( Math.abs( pos.lat - end.lat ) >= regiment.getVelocity() * k &&  Math.abs( pos.lng - end.lng ) >= regiment.getVelocity() * k && Move.ENABLED && !regiment.STOP )
 			{
                 if ( !Move.PAUSE ){
                     for ( marker in regiment.marker ) regiment.marker[marker].setLatLng( pos );
                     pos = L.latLng( pos.lat + deltaLat, pos.lng + deltaLng );
-                    console.log((pos.lat + deltaLat)+':' + (pos.lng + deltaLng));
 				}
                 
 			}
@@ -97,6 +134,8 @@ var Move =
 		}, Move.DELTA_TIME );
 	},//end func
                             
+    
+    
                             
     /**
     * перемещение маркера в заданную точку по прямой без анимации

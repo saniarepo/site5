@@ -15,6 +15,7 @@ var AROUND_TIMEOUT = 4000; /*интервал генерации событий 
 var hostname = window.location.hostname;
 var ELEVATION_TIMEOUT = 2000; /*интервал генерации событий запроса высотных данных*/
 var WEATHER_TIMEOUT = 300000; /*интервал генерации событий запроса погодных данных*/
+var TIME_SCALE = 20;/*масштаб времени*/
 
 /**
 * обработчик события connect
