@@ -75,9 +75,7 @@ var Move =
 		var pos = L.latLng( start.lat, start.lng );
         var newpos = null;
 		var interval = setInterval( function(){   
-            console.log(pos);
             var rastTact = Move.DELTA_TIME * TIME_SCALE /3600 * regiment.getVelocity();
-            console.log(rastTact);
             if ( (Helper.rast([pos.lat,pos.lng],[end.lat,end.lng]) >= rastTact) && Move.ENABLED && !regiment.STOP )
 			{
                 if ( !Move.PAUSE ){
@@ -114,8 +112,7 @@ var Move =
 		var i = 0;
 		var pos = L.latLng( start.lat, start.lng );
 		var interval = setInterval( function(){
-        var ogz = Helper.ogz([start.lat,start.lng],[end.lat,end.lng]);
-        console.log('r='+ogz.dist+' ;az='+ogz.azimut);    
+        var ogz = Helper.ogz([start.lat,start.lng],[end.lat,end.lng]);    
             if ( Math.abs( pos.lat - end.lat ) >= regiment.getVelocity() * k &&  Math.abs( pos.lng - end.lng ) >= regiment.getVelocity() * k && Move.ENABLED && !regiment.STOP )
 			{
                 if ( !Move.PAUSE ){
