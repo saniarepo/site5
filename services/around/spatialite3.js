@@ -1,5 +1,5 @@
 /*модуль маршрутов spatialite*/
-/*с отсечением узлов*/
+/*с отсечением узлов и с усечением графа*/
 var sqlite = require('spatialite');
 var time = require('./time');
 var db = null; 
@@ -11,11 +11,22 @@ var index_size = [];
 var n = 0; /**количество вершин графа**/
 var m = 0; /**количество дуг графа**/
 var INF = 999999999; /**большое число**/
+var NEG_INF = -999999999 /**отрицательное большое число**/
 var margin = 0.6; /**коэффициент расширения для определения части графа для обсчета**/
 var margin2 = 2.0;/**коэффициент расширения для определения части графа для обсчета**/
 var ready = false;
 var DB_FOLDER = 'db'; /*каталог с базами данных*/
 var CONNECTED_COFF = 0.95; /**часть связных узлов**/
+var boundary = {    /**объект задающий границы графа дорожной сети **/
+                    min_lat:null,
+                    max_lat:null,
+                    min_lng:null,
+                    max_lng:null
+                };
+
+var nodes_part = [];/**проекция массива узлов**/
+var n_part = 0; /**размер проекции массива узлов**/
+var MARGIN = 0.5; //отступ от границ в градусах
 
 /**
 * выполнение запроса и получение результатов в виде массива объектов
@@ -318,7 +329,8 @@ function around(regiments, bases, callback){
     //console.log('regiments: '+JSON.stringify(regiments));
     //console.log('bases: '+JSON.stringify(bases));
     var result = [];
-    time.start();
+    //time.start();
+    setBoundary(regiments, bases);
     var item = null;
     for (var i = 0; i < regiments.length; i++){
         result.push({id:regiments[i].id, around:false});
@@ -391,8 +403,11 @@ function wave(startNodes, callback){
 	var curr = null;
 	var id = null;
 	for ( var i = 0; i < n; i++ ){
-		waveLabel[i] = -1;
+		waveLabel[i] = INF;
 	}
+    for ( var i = 0; i < n_part; i++ ){
+        waveLabel[nodes_part[i]] = -1;
+    }
 	
 	for ( var i = 0; i < startNodes.length; i++ ){
         waveLabel[startNodes[i]-1] = 0;
@@ -504,14 +519,14 @@ function latlng2node_id(dot){
 * @param dot массив координат [lat,lng]
 * @return id узла 
 **/
-function latlng2node_id_part(dot,nodes_part,u){
-	var node_id = 0;
+function latlng2node_id_part(dot){
+		var node_id = 0;
 	var minDist = distance(dot,nodes[nodes_part[0]]);
-	for ( var i = 0; i < u; i++ ){
+	for ( var i = 0; i < n_part; i++ ){
 	   if ( !nodes[nodes_part[i]].connected ) continue;
 		var currDist = distance(dot, nodes[nodes_part[i]]);
 		if ( currDist < minDist ){
-			node_id = i;
+			node_id = nodes_part[i]+1;
 			minDist = currDist;
 		}
 	}
@@ -580,16 +595,16 @@ function getTargetsNodesId(to){
 * и массивы id узлов графа по каждому юниту отдельно
 **/
 function getUnitsNodes(units){
-	var ids = {all:[]};
+var ids = {all:[]};
     for ( var j = 0; j < units.length; j++ ){
         ids[units[j].id] = [];
-        for ( var i = 0; i < n; i++ ){
-            if ( rastGrad2([units[j].lat,units[j].lng], nodes[i]) <= units[j].radius ){
-                if ( ids.all.indexOf(i+1) == -1 ) ids.all.push(i+1);
-                ids[units[j].id].push(i+1);
+        for ( var i = 0; i < n_part; i++ ){
+            if ( rastGrad2([units[j].lat,units[j].lng], nodes[nodes_part[i]]) <= units[j].radius ){
+                if ( ids.all.indexOf(nodes_part[i]+1) == -1 ) ids.all.push(nodes_part[i]+1);
+                ids[units[j].id].push(nodes_part[i]+1);
             }
             if ( ids[units[j].id].length == 0 ){
-                ids[units[j].id].push(latlng2node_id([units[j].lat,units[j].lng]));
+                ids[units[j].id].push(latlng2node_id_part([units[j].lat,units[j].lng]));
             }
         }
     }
@@ -711,9 +726,9 @@ function fillConnectedNodes(index, callback){
 * разрешение всех узлов, сброс флага доступности
 **/
 function waveClear(){
-    for ( var i = 0; i < n; i++ ){
-        nodes[i].allowed = true;
-        nodes[i].access = false;
+    for ( var i = 0; i < n_part; i++ ){
+        nodes[nodes_part[i]].allowed = true;
+        nodes[nodes_part[i]].access = false;
     } 
 }
 
@@ -721,10 +736,10 @@ function waveClear(){
 * запрет узлов перекрытых юнитами
 **/
 function setNotAllow(units){
-    for ( var i = 0; i < n; i++ ){
+    for ( var i = 0; i < n_part; i++ ){
         for ( var j = 0; j < units.length; j++ ){
-            if ( rastGrad2([units[j].lat,units[j].lng], nodes[i]) <= units[j].radius ){
-                nodes[i].allowed = false;
+            if ( rastGrad2([units[j].lat,units[j].lng], nodes[nodes_part[i]]) <= units[j].radius ){
+                nodes[nodes_part[i]].allowed = false;
             }
         }
     }
@@ -767,6 +782,66 @@ function getUnitsFromCountry(units, country){
     return unitsFromCountry;
 }
 
+/**
+* сброс границ графа дорожной сети 
+**/
+function resetBoundary(){
+    boundary.min_lat = INF;
+    boundary.max_lat = NEG_INF;
+    boundary.min_lng = INF;
+    boundary.max_lng = NEG_INF;
+    nodes_part = [];
+    roads_part = [];  
+}
+ 
+/**
+* установка границ графа дорожной сети для ускорения работы алгоритма определения окружения
+* @param regiments массив объектов полков вида [{lat:lat,lng:lng,radius:radius,id:id,country:country}, ...]
+* @param bases массив объектов баз вида [{lat:lat,lng:lng,radius:radius,id:id,country:country}, ...
+**/
+function setBoundary(regiments, bases){
+    resetBoundary();
+    for (var i = 0; i < regiments.length; i++){
+        if (boundary.min_lat > regiments[i].lat) boundary.min_lat = regiments[i].lat;
+        if (boundary.min_lng > regiments[i].lng) boundary.min_lng = regiments[i].lng;
+        if (boundary.max_lat < regiments[i].lat) boundary.max_lat = regiments[i].lat;
+        if (boundary.max_lng < regiments[i].lng) boundary.max_lng = regiments[i].lng;
+    }
+    
+    for (var i = 0; i < bases.length; i++){
+        if (boundary.min_lat > bases[i].lat) boundary.min_lat = bases[i].lat;
+        if (boundary.min_lng > bases[i].lng) boundary.min_lng = bases[i].lng;
+        if (boundary.max_lat < bases[i].lat) boundary.max_lat = bases[i].lat;
+        if (boundary.max_lng < bases[i].lng) boundary.max_lng = bases[i].lng;
+    }
+    boundary.min_lat -= MARGIN;
+    boundary.min_lng -= MARGIN;
+    boundary.max_lat += MARGIN;
+    boundary.max_lng += MARGIN;
+    if ( boundary.min_lat < -90 ){ boundary.min_lat = -90;} else if ( boundary.min_lat > 90 ){boundary.min_lat = 90;}
+    if ( boundary.max_lat < -90 ){ boundary.max_lat = -90;} else if ( boundary.max_lat > 90 ){boundary.max_lat = 90;}
+    if ( boundary.min_lng < -180 ){ boundary.min_lng = 360 + boundary.min_lng;} else if ( boundary.min_lng > 180 ){ boundary.min_lng = boundary.min_lng - 360;}
+    if ( boundary.max_lng < -180 ){ boundary.max_lng = 360 + boundary.max_lng;} else if ( boundary.max_lng > 180 ){ boundary.max_lng = boundary.max_lng - 360;}
+    //console.log('min_lat: '+boundary.min_lat+'\nmax_lat: '+boundary.max_lat+'\nmin_lng: '+boundary.min_lng+'\nmax_lng: '+boundary.max_lng);
+    //отбираем нужную часть графа
+	//отбираем узлы 
+    for ( var i = 0; i < n; i++ ){
+		var lat = nodes[i].lat;
+		var lng = nodes[i].lng;
+		if (    lat < boundary.max_lat && 
+                lat > boundary.min_lat && 
+                lng < boundary.max_lng && 
+                lng > boundary.min_lng 
+            )
+            {
+			nodes_part.push(i);
+		}
+	}
+	n_part = nodes_part.length;
+    //console.log('n_part='+n_part);
+    
+   
+}
 
 exports.init = init;
 exports.query = query;

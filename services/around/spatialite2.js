@@ -1,5 +1,5 @@
 /*модуль маршрутов spatialite*/
-/*с отсечением узлов*/
+/*с отсечением дорог и усечением графа*/
 var sqlite = require('spatialite');
 var time = require('./time');
 var db = null; 
@@ -11,11 +11,24 @@ var index_size = [];
 var n = 0; /**количество вершин графа**/
 var m = 0; /**количество дуг графа**/
 var INF = 999999999; /**большое число**/
+var NEG_INF = -999999999 /**отрицательное большое число**/
 var margin = 0.6; /**коэффициент расширения для определения части графа для обсчета**/
 var margin2 = 2.0;/**коэффициент расширения для определения части графа для обсчета**/
 var ready = false;
 var DB_FOLDER = 'db'; /*каталог с базами данных*/
 var CONNECTED_COFF = 0.95; /**часть связных узлов**/
+var boundary = {    /**объект задающий границы графа дорожной сети **/
+                    min_lat:null,
+                    max_lat:null,
+                    min_lng:null,
+                    max_lng:null
+                };
+
+var nodes_part = [];/**проекция массива узлов**/
+var roads_part = [];/**проекция массива дорог**/
+var n_part = 0; /**размер проекции массива узлов**/
+var m_part = 0; /**размер проекции массива дорог**/
+var MARGIN = 0.5; //отступ от границ в градусах
 
 /**
 * выполнение запроса и получение результатов в виде массива объектов
@@ -43,7 +56,7 @@ function query(sql, callback){
 /**
 * получение дорог из базы в виде массива объектов и запись в массив roads + заполнение индексных массивов
 * @param callback функция обратного вызова
-* roads - массив объектов вида {node_from:node_from,node_to:node_to,name:name,cost:cost,length:length,lat_from:lat_from,lng_from:lng_from,lat_to:lat_to,lng_to:lng_to}
+* roads - массив объектов вида {node_from:node_from,node_to:node_to,name:name,cost:cost,length:length,geometry:[[lat,lng],[lat,lng],...],open:true}
 **/
 function loadRoads(callback){
 	var sql = "SELECT node_from, node_to, name, cost, length, Y(rn.geometry) "; 
@@ -51,8 +64,7 @@ function loadRoads(callback){
 		sql += "AS lat_to, X(rn2.geometry) AS lng_to, AsGeoJSON(r.geometry) AS geometry ";  
 		sql += "FROM roads r,roads_nodes rn, roads_nodes rn2 "; 
 		sql += "WHERE r.node_from=rn.node_id AND r.node_to=rn2.node_id ORDER BY node_from,node_to";
-	
-	
+		
 	db.spatialite(function(err) {
 		db.all(sql, function(err, rows) {
 			if ( rows != undefined ){
@@ -60,10 +72,33 @@ function loadRoads(callback){
 					//записываем в массив
 					var geom = null;
 					for ( var i = 0; i < rows.length; i++ ){
-						roads.push(rows[i]);
 						geom = JSON.parse(rows[i].geometry);
-						geom.coordinates.reverse();
-						roads.push({node_from:rows[i].node_to, node_to:rows[i].node_from,cost:rows[i].cost,length:rows[i].length,geometry:JSON.stringify(geom)});
+						roads.push({
+                                    node_to:rows[i].node_to, 
+                                    node_from:rows[i].node_from,
+                                    cost:rows[i].cost,
+                                    length:rows[i].length,
+                                    geometry:geom.coordinates,
+                                    lat_from:rows[i].lat_from,
+                                    lng_from:rows[i].lng_from,
+                                    lat_to:rows[i].lat_to,
+                                    lng_to:rows[i].lng_to,
+                                    open:true
+                                    });
+                                    
+                        geom.coordinates.reverse();
+						roads.push({
+                                    node_from:rows[i].node_to, 
+                                    node_to:rows[i].node_from,
+                                    cost:rows[i].cost,
+                                    length:rows[i].length,
+                                    geometry:geom.coordinates,
+                                    lat_from:rows[i].lat_from,
+                                    lng_from:rows[i].lng_from,
+                                    lat_to:rows[i].lat_to,
+                                    lng_to:rows[i].lng_to,
+                                    open:true
+                                    });
 					}
 					m = roads.length;
 					//сортируем
@@ -96,7 +131,7 @@ function loadRoads(callback){
 /**
 * получение узлов графа из базы в виде массива объектов и запись в массив nodes
 * @param callback функция обратного вызова
-* nodes - массив объектов вида {node_id:node_id,cardinality:cardinality,lat:lat,lng:lng, connected:connected, allowed:allowed,access:access}
+* nodes - массив объектов вида {node_id:node_id,cardinality:cardinality,lat:lat,lng:lng, connected:connected,access:access}
 **/
 function loadNodes(callback){
 	var sql = "SELECT node_id, cardinality, Y(geometry) AS lat, X(geometry) AS lng FROM roads_nodes"; 
@@ -105,9 +140,8 @@ function loadNodes(callback){
 			if ( rows != undefined ){
 				if ( rows != null ){
 					for ( var i = 0; i < rows.length; i++ ){
-						rows[i].connected = false;
-                        rows[i].allowed = true;
-                        rows[i].access = false;
+						rows[i].connected = false; //флаг принадлежности с связной части графа
+                        rows[i].access = false; //флаг посещения узла
                         nodes.push(rows[i]);
 					}			
 				}
@@ -144,8 +178,8 @@ function getCoordinates(from,to){
 	if ( index_size[from-1] == 0 && index_size[to-1] == 0 ) return [];
 	for ( var i = index_from[from-1]; i < index_from[from-1] + index_size[from-1]; i++ ){
 		if ( roads[i].node_from == from && roads[i].node_to == to ){
-			geom = JSON.parse(roads[i].geometry);
-			return geom.coordinates;
+			geom = roads[i].geometry;
+			return geom;
 		} 
 	}
 	return [];
@@ -317,9 +351,11 @@ function findRouteToBases(from, to, enemy, callback){
 function around(regiments, bases, callback){
     //console.log('regiments: '+JSON.stringify(regiments));
     //console.log('bases: '+JSON.stringify(bases));
-    var result = [];
     time.start();
+    var result = [];
     var item = null;
+    setBoundary(regiments, bases);
+    //console.log('setBoundary: ' + time.stop());
     for (var i = 0; i < regiments.length; i++){
         result.push({id:regiments[i].id, around:false});
     }
@@ -345,12 +381,12 @@ function around(regiments, bases, callback){
 function startWave( countryIndex, countries, regiments, bases, result, callback ){
     if( countryIndex < 2 ){
         //console.log('begin: ' + time.stop());
-        waveClear();
+        waveClear();//открыть все пути, снять все флаги посещенности
         //console.log('waveClear: ' + time.stop());
         var basesNodes = getUnitsNodes(getUnitsFromCountry(bases, countries[countryIndex]));
         //console.log('getUnitsNodes: ' + time.stop());
         var countryIndexEnemy = ( countryIndex == 0 )? 1 : 0;
-        setNotAllow(getUnitsFromCountry(regiments, countries[countryIndexEnemy]));
+        setNotAllow(getUnitsFromCountry(regiments, countries[countryIndexEnemy]));//закрыть перекрытые пути
         //console.log('setNotAllow: ' + time.stop());
         wave(basesNodes.all, function(){
             //console.log('endWave: ' + time.stop());
@@ -391,8 +427,11 @@ function wave(startNodes, callback){
 	var curr = null;
 	var id = null;
 	for ( var i = 0; i < n; i++ ){
-		waveLabel[i] = -1;
+		waveLabel[i] = INF;
 	}
+    for ( var i = 0; i < n_part; i++ ){
+        waveLabel[nodes_part[i]] = -1;
+    }
 	
 	for ( var i = 0; i < startNodes.length; i++ ){
         waveLabel[startNodes[i]-1] = 0;
@@ -406,14 +445,14 @@ function wave(startNodes, callback){
 			curr = oldFront[i];
 			//console.log('curr='+curr);
 			for ( j = index_from[curr-1]; j < index_from[curr-1] + index_size[curr-1]; j++ ){
-				id = roads[j].node_to;
-                if ( !nodes[id-1].allowed ) continue;
+				if (!roads[j].open) continue;
+                id = roads[j].node_to;
 				if ( waveLabel[id-1] == -1 ){
 					waveLabel[id-1] = T + 1;
 					newFront.push(id);
 					nodes[id-1].access = true;
 				}
-			}
+			} 
 		}
 		if ( newFront.length == 0 ){
 			/*распостранение волны закончено*/
@@ -504,14 +543,14 @@ function latlng2node_id(dot){
 * @param dot массив координат [lat,lng]
 * @return id узла 
 **/
-function latlng2node_id_part(dot,nodes_part,u){
+function latlng2node_id_part(dot){
 	var node_id = 0;
 	var minDist = distance(dot,nodes[nodes_part[0]]);
-	for ( var i = 0; i < u; i++ ){
+	for ( var i = 0; i < n_part; i++ ){
 	   if ( !nodes[nodes_part[i]].connected ) continue;
 		var currDist = distance(dot, nodes[nodes_part[i]]);
 		if ( currDist < minDist ){
-			node_id = i;
+			node_id = nodes_part[i]+1;
 			minDist = currDist;
 		}
 	}
@@ -583,13 +622,13 @@ function getUnitsNodes(units){
 	var ids = {all:[]};
     for ( var j = 0; j < units.length; j++ ){
         ids[units[j].id] = [];
-        for ( var i = 0; i < n; i++ ){
-            if ( rastGrad2([units[j].lat,units[j].lng], nodes[i]) <= units[j].radius ){
-                if ( ids.all.indexOf(i+1) == -1 ) ids.all.push(i+1);
-                ids[units[j].id].push(i+1);
+        for ( var i = 0; i < n_part; i++ ){
+            if ( rastGrad2([units[j].lat,units[j].lng], nodes[nodes_part[i]]) <= units[j].radius ){
+                if ( ids.all.indexOf(nodes_part[i]+1) == -1 ) ids.all.push(nodes_part[i]+1);
+                ids[units[j].id].push(nodes_part[i]+1);
             }
             if ( ids[units[j].id].length == 0 ){
-                ids[units[j].id].push(latlng2node_id([units[j].lat,units[j].lng]));
+                ids[units[j].id].push(latlng2node_id_part([units[j].lat,units[j].lng]));
             }
         }
     }
@@ -643,7 +682,7 @@ function rastGrad(dot1,dot2){
 
 /**
 * вычисление расстояния на сфере  в градусах
-* @param dot точкf, заданная массивом кооординат [lat,lng]
+* @param dot точка, заданная массивом кооординат [lat,lng]
 * @param node узел графа, заданный как объект вида {node_id:node_id,lat:lat,lng:lng }
 **/
 function rastGrad2(dot, node){
@@ -711,20 +750,29 @@ function fillConnectedNodes(index, callback){
 * разрешение всех узлов, сброс флага доступности
 **/
 function waveClear(){
-    for ( var i = 0; i < n; i++ ){
-        nodes[i].allowed = true;
-        nodes[i].access = false;
-    } 
+    for ( var i = 0; i < n_part; i++ ){
+        nodes[nodes_part[i]].access = false;
+    }
+    for ( var i = 0; i < m_part; i++ ){
+        roads[roads_part[i]].open = true;
+    }    
 }
 
 /**
-* запрет узлов перекрытых юнитами
+* запрет путей перекрытых юнитами
 **/
 function setNotAllow(units){
-    for ( var i = 0; i < n; i++ ){
-        for ( var j = 0; j < units.length; j++ ){
-            if ( rastGrad2([units[j].lat,units[j].lng], nodes[i]) <= units[j].radius ){
-                nodes[i].allowed = false;
+    var open = true;
+    for ( var i = 0; i < m_part; i++ ){
+       open = true;
+       for ( var j = 0; j < units.length; j++ ){
+            if (!open) break;
+            for ( var k = 0; k < roads[roads_part[i]].geometry.length; k++ ){ 
+                if ( rastGrad([units[j].lat,units[j].lng], [roads[roads_part[i]].geometry[k][0],roads[roads_part[i]].geometry[k][1]]) <= units[j].radius ){
+                    roads[roads_part[i]].open = false;
+                    open = false;
+                    break;
+                }
             }
         }
     }
@@ -765,6 +813,87 @@ function getUnitsFromCountry(units, country){
         }
     }
     return unitsFromCountry;
+}
+
+/**
+* сброс границ графа дорожной сети 
+**/
+function resetBoundary(){
+    boundary.min_lat = INF;
+    boundary.max_lat = NEG_INF;
+    boundary.min_lng = INF;
+    boundary.max_lng = NEG_INF;
+    nodes_part = [];
+    roads_part = [];  
+}
+ 
+/**
+* установка границ графа дорожной сети для ускорения работы алгоритма определения окружения
+* @param regiments массив объектов полков вида [{lat:lat,lng:lng,radius:radius,id:id,country:country}, ...]
+* @param bases массив объектов баз вида [{lat:lat,lng:lng,radius:radius,id:id,country:country}, ...
+**/
+function setBoundary(regiments, bases){
+    resetBoundary();
+    for (var i = 0; i < regiments.length; i++){
+        if (boundary.min_lat > regiments[i].lat) boundary.min_lat = regiments[i].lat;
+        if (boundary.min_lng > regiments[i].lng) boundary.min_lng = regiments[i].lng;
+        if (boundary.max_lat < regiments[i].lat) boundary.max_lat = regiments[i].lat;
+        if (boundary.max_lng < regiments[i].lng) boundary.max_lng = regiments[i].lng;
+    }
+    
+    for (var i = 0; i < bases.length; i++){
+        if (boundary.min_lat > bases[i].lat) boundary.min_lat = bases[i].lat;
+        if (boundary.min_lng > bases[i].lng) boundary.min_lng = bases[i].lng;
+        if (boundary.max_lat < bases[i].lat) boundary.max_lat = bases[i].lat;
+        if (boundary.max_lng < bases[i].lng) boundary.max_lng = bases[i].lng;
+    }
+    boundary.min_lat -= MARGIN;
+    boundary.min_lng -= MARGIN;
+    boundary.max_lat += MARGIN;
+    boundary.max_lng += MARGIN;
+    if ( boundary.min_lat < -90 ){ boundary.min_lat = -90;} else if ( boundary.min_lat > 90 ){boundary.min_lat = 90;}
+    if ( boundary.max_lat < -90 ){ boundary.max_lat = -90;} else if ( boundary.max_lat > 90 ){boundary.max_lat = 90;}
+    if ( boundary.min_lng < -180 ){ boundary.min_lng = 360 + boundary.min_lng;} else if ( boundary.min_lng > 180 ){ boundary.min_lng = boundary.min_lng - 360;}
+    if ( boundary.max_lng < -180 ){ boundary.max_lng = 360 + boundary.max_lng;} else if ( boundary.max_lng > 180 ){ boundary.max_lng = boundary.max_lng - 360;}
+    //console.log('min_lat: '+boundary.min_lat+'\nmax_lat: '+boundary.max_lat+'\nmin_lng: '+boundary.min_lng+'\nmax_lng: '+boundary.max_lng);
+    //отбираем нужную часть графа
+	//отбираем узлы 
+    for ( var i = 0; i < n; i++ ){
+		var lat = nodes[i].lat;
+		var lng = nodes[i].lng;
+		if (    lat < boundary.max_lat && 
+                lat > boundary.min_lat && 
+                lng < boundary.max_lng && 
+                lng > boundary.min_lng 
+            )
+            {
+			nodes_part.push(i);
+		}
+	}
+	n_part = nodes_part.length;
+    //console.log('n_part='+n_part);
+    
+    //отбираем дороги 
+    for ( var i = 0; i < m; i++ ){
+		var lat1 = roads[i].lat_from;
+		var lng1 = roads[i].lng_from;
+        var lat2 = roads[i].lat_to;
+		var lng2 = roads[i].lng_to;
+		if (    lat1 < boundary.max_lat && 
+                lat1 > boundary.min_lat && 
+                lng1 < boundary.max_lng && 
+                lng1 > boundary.min_lng &&
+                lat2 < boundary.max_lat && 
+                lat2 > boundary.min_lat && 
+                lng2 < boundary.max_lng && 
+                lng2 > boundary.min_lng
+            )
+            {
+			roads_part.push(i);
+		}
+	}
+	m_part = roads_part.length;
+    //console.log('m_part='+m_part);
 }
 
 

@@ -167,7 +167,7 @@ var Helper =
     **/
     
      pgz: function (dot, dist, az){
-    	console.log(dot,dist,az);
+    	//console.log(dot,dist,az);
     	var rad = 6372795;
     	var pt1 = [0,0];
     	pt1[0] = Helper.Radians(dot[0]);
